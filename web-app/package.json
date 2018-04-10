@@ -1,0 +1,31 @@
+{
+  "name": "kafka-streams-client",
+  "version": "0.0.1",
+  "description": "Frontend server for Kafka streams example",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-client": "cd client && npm run build && cd ..",
+    "build": "rimraf dist/ && babel ./ --out-dir dist/ --ignore ./node_modules,./.babelrc,./package.json,./npm-debug.log --copy-files",
+    "start": "npm run build && node dist/index.js"
+  },
+  "author": "Amitay Horwitz <amitayh@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "express": "^4.16.3",
+    "kafka-node": "^2.4.1",
+    "mysql": "^2.15.0",
+    "socket.io": "^2.0.4",
+    "uuid": "^3.2.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.4",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
+    "rimraf": "^2.6.2"
+  }
+}
