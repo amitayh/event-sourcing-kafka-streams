@@ -23,7 +23,7 @@ startConsumer('invoice-command-results', {}, (id, result) => {
     socket.to(socketId).emit('command-succeeded', commandId);
   }
 });
-startConsumer('invoice-states', {}, (id, record) => {
+startConsumer('invoice-records', {}, (id, record) => {
   socket.sockets.emit('invoice-updated', {...record, id});
 });
 

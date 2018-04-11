@@ -14,7 +14,7 @@ export default class InvoicesTable extends PureComponent {
           </tr>
         </thead>
         <tbody>
-          {invoices.map(invoice => <InvoicesRow invoice={invoice}/>)}
+          {invoices.map(invoice => <InvoicesRow key={invoice.id} invoice={invoice}/>)}
         </tbody>
       </table>
     );
@@ -25,7 +25,7 @@ class InvoicesRow extends PureComponent {
   render() {
     const {invoice} = this.props;
     return (
-      <tr key={invoice.id}>
+      <tr>
         <td>{invoice.id}</td>
         <td>{invoice.customerName}</td>
         <td>{invoice.customerEmail}</td>

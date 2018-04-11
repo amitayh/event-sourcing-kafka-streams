@@ -36,9 +36,9 @@ export const emptyDraft = {
 
 export const pendingInvoice = id => ({
   id,
-  customerName: '⏳',
-  customerEmail: '⏳',
-  total: '⏳'
+  customerName: '',
+  customerEmail: '',
+  total: ''
 });
 
 export const initialState = {

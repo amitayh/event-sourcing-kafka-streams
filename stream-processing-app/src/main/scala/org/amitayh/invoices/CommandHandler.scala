@@ -5,8 +5,6 @@ import java.util.{Collections, Properties, UUID}
 
 import org.amitayh.invoices.JsonSerde._
 import org.amitayh.invoices.domain._
-import org.amitayh.invoices.projection.InvoiceRecord
-import org.apache.kafka.common.serialization.Serdes.StringSerde
 import org.apache.kafka.common.utils.Bytes
 import org.apache.kafka.streams._
 import org.apache.kafka.streams.kstream.{Joined, _}
@@ -15,16 +13,15 @@ import org.apache.kafka.streams.state._
 
 import scala.collection.JavaConverters._
 
-object InvoicesService extends App {
+object CommandHandler extends App {
 
   val builder = new StreamsBuilder
-  val invoicesTable: KTable[UUID, Snapshot[Invoice]] = Topology.invoicesTable(builder)
-  val commands: KStream[UUID, CommandAndInvoice] = Topology.commandsStream(builder, invoicesTable)
-  val results: KStream[UUID, CommandExecutionResult] = Topology.executeCommands(commands)
-  val events: KStream[UUID, InvoiceEvent] = Topology.eventsStream(results)
-  val invoicesStream: KStream[UUID, InvoiceRecord] = Topology.invoicesStream(invoicesTable)
+  val snapshots: KTable[UUID, Snapshot[Invoice]] = CommandHandlerTopology.invoicesTable(builder)
+  val commands: KStream[UUID, CommandAndInvoice] = CommandHandlerTopology.commandsStream(builder, snapshots)
+  val results: KStream[UUID, CommandExecutionResult] = CommandHandlerTopology.executeCommands(commands)
+  val events: KStream[UUID, InvoiceEvent] = CommandHandlerTopology.eventsStream(results)
 
-  invoicesStream.to(Config.InvoicesTopic, Produced.`with`(UuidSerde, RecordSerde))
+  snapshots.toStream.to(Config.SnapshotsTopic, Produced.`with`(UuidSerde, SnapshotSerde))
   events.to(Config.EventsTopic, Produced.`with`(UuidSerde, EventSerde))
   results.to(Config.CommandResultTopic, Produced.`with`(UuidSerde, CommandResultSerde))
 
@@ -32,7 +29,6 @@ object InvoicesService extends App {
     val props = new Properties
     props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, Config.BootstrapServers)
     props.put(StreamsConfig.APPLICATION_ID_CONFIG, Config.CommandsGroupId)
-    props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, classOf[StringSerde])
     props.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE)
     props.put(StreamsConfig.STATE_DIR_CONFIG, "/tmp/kafka-streams")
     props.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, classOf[WallclockTimestampExtractor])
@@ -45,28 +41,32 @@ object InvoicesService extends App {
     latch.countDown()
   })
 
+  def close(): Unit = {
+    println("Shutting down...")
+    streams.close()
+  }
+
   try {
     println("Starting...")
     streams.start()
     println("Started.")
+    sys.ShutdownHookThread(close())
     latch.await()
   } finally {
-    streams.close()
+    close()
   }
 
 }
 
-object Topology {
+object CommandHandlerTopology {
   def invoicesTable(builder: StreamsBuilder): KTable[UUID, Snapshot[Invoice]] = {
     val snapshotReducer = new SnapshotReducer(InvoiceReducer)
 
     val materialized: Materialized[UUID, Snapshot[Invoice], KeyValueStore[Bytes, Array[Byte]]] =
       Materialized
-        .as(Config.InvoicesStore)
+        .as(Config.SnapshotsStore)
         .withKeySerde(UuidSerde)
         .withValueSerde(SnapshotSerde)
-
-    builder.table("foo")
 
     builder
       .stream(Config.EventsTopic, Consumed.`with`(UuidSerde, EventSerde))
@@ -75,13 +75,6 @@ object Topology {
         snapshotReducer.initializer,
         snapshotReducer.aggregator,
         materialized)
-  }
-
-  def invoicesStream(invoices: KTable[UUID, Snapshot[Invoice]]): KStream[UUID, InvoiceRecord] = {
-    val mapper: ValueMapper[Snapshot[Invoice], InvoiceRecord] = {
-      case Snapshot(invoice, _) => InvoiceRecord(invoice)
-    }
-    invoices.toStream.mapValues(mapper)
   }
 
   def commandsStream(builder: StreamsBuilder,
