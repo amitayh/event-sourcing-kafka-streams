@@ -2,7 +2,10 @@ const toRecord = row => ({
   id: row.id,
   customerName: row.customer_name,
   customerEmail: row.customer_email,
-  total: row.total
+  issueDate: row.issue_date,
+  dueDate: row.due_date,
+  total: row.total,
+  status: row.status
 });
 
 export const reader = conn => () => new Promise((resolve, reject) => {

@@ -23,7 +23,7 @@ object Cleanup extends App {
     println(deleteResult)
     println("-")
 
-    Thread.sleep(1000)
+    Thread.sleep(100)
 
     println(s"Creating topic $topic...")
     val newTopic = new NewTopic(topic, 4, 1)

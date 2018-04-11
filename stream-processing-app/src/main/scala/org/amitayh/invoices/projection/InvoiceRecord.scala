@@ -4,7 +4,10 @@ import org.amitayh.invoices.domain.Invoice
 
 case class InvoiceRecord(customerName: String,
                          customerEmail: String,
-                         total: Double)
+                         issueDate: String,
+                         dueDate: String,
+                         total: Double,
+                         status: String)
 
 object InvoiceRecord {
   def apply(invoice: Invoice): InvoiceRecord = {
@@ -12,6 +15,9 @@ object InvoiceRecord {
     InvoiceRecord(
       customerName = customer.name,
       customerEmail = customer.email,
-      total = invoice.total)
+      issueDate = invoice.issueDate.toString,
+      dueDate = invoice.dueDate.toString,
+      total = invoice.total,
+      status = invoice.status.toString)
   }
 }

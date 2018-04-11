@@ -23,5 +23,4 @@ class SnapshotReducer[Aggregate, Event](aggregateReducer: Reducer[Aggregate, Eve
       Snapshot(
         aggregate = aggregateReducer.aggregator(id, event, snapshot.aggregate),
         version = snapshot.version + 1)
-
 }

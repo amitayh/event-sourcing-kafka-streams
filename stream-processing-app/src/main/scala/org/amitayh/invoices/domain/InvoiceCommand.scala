@@ -44,6 +44,11 @@ case class RemoveItem(lineItemId: UUID) extends InvoiceCommand {
   }
 }
 
+case class PayInvoice() extends InvoiceCommand {
+  override def apply(invoice: Invoice): Try[Seq[InvoiceEvent]] =
+    Success(PaymentReceived(invoice.total) :: Nil)
+}
+
 case class CommandAndInvoice(command: EventSourcedCommand, snapshot: Snapshot[Invoice]) {
   def execute: CommandExecutionResult = command(snapshot)
 }

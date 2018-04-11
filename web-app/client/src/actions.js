@@ -72,7 +72,7 @@ export const clearMessage = {
   nextState: state => ({...state, message: null})
 };
 
-export const createCommandStarted = command => ({
+export const commandExecutionStarted = command => ({
   type: 'COMMAND_EXECUTION_STARTED',
   nextState: state => {
     const message = 'Loading...';
@@ -81,7 +81,7 @@ export const createCommandStarted = command => ({
   }
 });
 
-export const createCommandFinished = commandId => ({
+export const commandExecutionFinished = commandId => ({
   type: 'COMMAND_EXECUTION_FINISHED',
   nextState: state => ({...state, message: `Success! ${commandId}`}),
   runEffect: dispatch => setTimeout(() => dispatch(clearMessage), 3000)
@@ -92,6 +92,15 @@ export const createInvoice = draft => ({
   nextState: state => ({...state, draft: emptyDraft}),
   runEffect: dispatch => {
     api.createInvoice(draft)
-      .then(command => dispatch(createCommandStarted(command)));
+      .then(command => dispatch(commandExecutionStarted(command)));
+  }
+});
+
+export const payInvoice = id => ({
+  type: 'PAY_INVOICE',
+  nextState: state => state,
+  runEffect: dispatch => {
+    api.payInvoice(id)
+      // .then(command => dispatch(commandExecutionStarted(command)));
   }
 });

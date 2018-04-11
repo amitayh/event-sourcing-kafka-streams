@@ -14,3 +14,12 @@ export const createInvoice = draft => {
   };
   return fetch('/api/create', options).then(toJson);
 };
+
+export const payInvoice = invoiceId => {
+  const options = {
+    method: 'POST',
+    headers: {'content-type': 'application/json'},
+    body: JSON.stringify({socketId: socket.id, invoiceId})
+  };
+  return fetch('/api/pay', options).then(toJson);
+};

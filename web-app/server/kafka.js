@@ -26,6 +26,8 @@ const uuidBytes = () => {
   return buffer;
 };
 
+const uuidToBytes = uuid => Buffer.from(uuid.replace(/-/g, ''), 'hex');
+
 export const createInvoice = draft => {
   const invoiceId = uuidBytes();
   const commandId = uuidv4();
@@ -54,6 +56,30 @@ export const createInvoice = draft => {
         reject(err);
       } else {
         resolve({commandId, invoiceId: bytesToUuid(invoiceId)});
+      }
+    });
+  });
+};
+
+export const payInvoice = invoiceId => {
+  const commandId = uuidv4();
+  const command = {
+    commandId: commandId,
+    toEvents: {PayInvoice: {}}
+  };
+  const payload = {
+    topic: commandsTopic,
+    messages: [JSON.stringify(command)],
+    key: uuidToBytes(invoiceId),
+    timestamp: Date.now()
+  };
+
+  return new Promise((resolve, reject) => {
+    commandsProducer.send([payload], err => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({commandId, invoiceId: invoiceId});
       }
     });
   });

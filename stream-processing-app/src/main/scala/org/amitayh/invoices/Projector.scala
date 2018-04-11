@@ -31,7 +31,6 @@ object Projector extends App {
     props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, Config.BootstrapServers)
     props.put(StreamsConfig.APPLICATION_ID_CONFIG, Config.ProjectorGroupId)
     props.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE)
-    props.put(StreamsConfig.STATE_DIR_CONFIG, "/tmp/kafka-streams")
     props.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, classOf[WallclockTimestampExtractor])
     new KafkaStreams(builder.build, props)
   }

@@ -25,6 +25,8 @@ object JsonSerde {
   implicit val listItemEncoder: Encoder[LineItem] = deriveEncoder
   implicit val customerDecoder: Decoder[Customer] = deriveDecoder
   implicit val customerEncoder: Encoder[Customer] = deriveEncoder
+  implicit val statusDecoder: Decoder[InvoiceStatus] = deriveDecoder
+  implicit val statusEncoder: Encoder[InvoiceStatus] = deriveEncoder
   implicit val dateDecoder: Decoder[LocalDate] = Decoder.decodeString.map(LocalDate.parse)
   implicit val dateEncoder: Encoder[LocalDate] = (date: LocalDate) => date.toString.asJson
   implicit val invoiceDecoder: Decoder[Invoice] = deriveDecoder

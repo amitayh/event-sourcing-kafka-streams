@@ -30,4 +30,8 @@ case class LineItemRemoved(lineItemId: UUID) extends InvoiceEvent {
     invoice.removeLineItem(lineItemId)
 }
 
+case class PaymentReceived(amount: Double) extends InvoiceEvent {
+  override def apply(invoice: Invoice): Invoice = invoice.pay(amount)
+}
+
 case class InvoiceSentToCustomer() extends InvoiceEvent

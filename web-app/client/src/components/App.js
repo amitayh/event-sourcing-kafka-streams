@@ -8,7 +8,8 @@ import {
   draftEdited,
   lineItemAdded,
   lineItemEdited,
-  lineItemRemoved
+  lineItemRemoved,
+  payInvoice
 } from '../actions';
 
 class App extends PureComponent {
@@ -16,11 +17,9 @@ class App extends PureComponent {
     const state = this.props.state || initialState;
     const dispatch = this.props.dispatch;
     return (
-      <div className="App">
-        <h1>Hello World</h1>
-        <Message message={state.message}/>
+      <div className="container">
         <h2>List</h2>
-        <InvoicesTable invoices={state.invoices}/>
+        <InvoicesTable invoices={state.invoices} onPay={id => dispatch(payInvoice(id))}/>
         <h2>New</h2>
         <InvoiceForm
           invoice={state.draft}
@@ -32,6 +31,7 @@ class App extends PureComponent {
         <p>
           <button onClick={() => dispatch(createInvoice(state.draft))}>Create</button>
         </p>
+        <Message message={state.message}/>
       </div>
     );
   }

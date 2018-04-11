@@ -21,6 +21,10 @@ object CommandHandler extends App {
   val results: KStream[UUID, CommandExecutionResult] = CommandHandlerTopology.executeCommands(commands)
   val events: KStream[UUID, InvoiceEvent] = CommandHandlerTopology.eventsStream(results)
 
+  commands.foreach { (id: UUID, command: CommandAndInvoice) =>
+    println(id, command)
+  }
+
   snapshots.toStream.to(Config.SnapshotsTopic, Produced.`with`(UuidSerde, SnapshotSerde))
   events.to(Config.EventsTopic, Produced.`with`(UuidSerde, EventSerde))
   results.to(Config.CommandResultTopic, Produced.`with`(UuidSerde, CommandResultSerde))
@@ -30,7 +34,6 @@ object CommandHandler extends App {
     props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, Config.BootstrapServers)
     props.put(StreamsConfig.APPLICATION_ID_CONFIG, Config.CommandsGroupId)
     props.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE)
-    props.put(StreamsConfig.STATE_DIR_CONFIG, "/tmp/kafka-streams")
     props.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, classOf[WallclockTimestampExtractor])
     new KafkaStreams(builder.build, props)
   }
