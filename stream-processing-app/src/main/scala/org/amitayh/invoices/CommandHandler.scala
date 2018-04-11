@@ -7,7 +7,7 @@ import org.amitayh.invoices.JsonSerde._
 import org.amitayh.invoices.domain._
 import org.apache.kafka.common.utils.Bytes
 import org.apache.kafka.streams._
-import org.apache.kafka.streams.kstream.{Joined, _}
+import org.apache.kafka.streams.kstream._
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor
 import org.apache.kafka.streams.state._
 
@@ -15,15 +15,13 @@ import scala.collection.JavaConverters._
 
 object CommandHandler extends App {
 
+  val latch = new CountDownLatch(1)
   val builder = new StreamsBuilder
-  val snapshots: KTable[UUID, Snapshot[Invoice]] = CommandHandlerTopology.invoicesTable(builder)
-  val commands: KStream[UUID, CommandAndInvoice] = CommandHandlerTopology.commandsStream(builder, snapshots)
-  val results: KStream[UUID, CommandExecutionResult] = CommandHandlerTopology.executeCommands(commands)
-  val events: KStream[UUID, InvoiceEvent] = CommandHandlerTopology.eventsStream(results)
-
-  commands.foreach { (id: UUID, command: CommandAndInvoice) =>
-    println(id, command)
-  }
+  val reducer = new SnapshotReducer(InvoiceReducer)
+  val snapshots: KTable[UUID, Snapshot[Invoice]] = snapshotsTable(builder)
+  val commands: KStream[UUID, EventSourcedCommand] = commandsStream(builder)
+  val results: KStream[UUID, CommandExecutionResult] = executeCommands(commands, snapshots)
+  val events: KStream[UUID, InvoiceEvent] = eventsStream(results)
 
   snapshots.toStream.to(Config.SnapshotsTopic, Produced.`with`(UuidSerde, SnapshotSerde))
   events.to(Config.EventsTopic, Produced.`with`(UuidSerde, EventSerde))
@@ -35,21 +33,16 @@ object CommandHandler extends App {
     props.put(StreamsConfig.APPLICATION_ID_CONFIG, Config.CommandsGroupId)
     props.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE)
     props.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, classOf[WallclockTimestampExtractor])
-    new KafkaStreams(builder.build, props)
+    val s = new KafkaStreams(builder.build, props)
+    s.setUncaughtExceptionHandler((_: Thread, e: Throwable) => {
+      e.printStackTrace()
+      latch.countDown()
+    })
+    s
   }
+  start()
 
-  val latch = new CountDownLatch(1)
-  streams.setUncaughtExceptionHandler((_: Thread, e: Throwable) => {
-    e.printStackTrace()
-    latch.countDown()
-  })
-
-  def close(): Unit = {
-    println("Shutting down...")
-    streams.close()
-  }
-
-  try {
+  def start(): Unit = try {
     println("Starting...")
     streams.start()
     println("Started.")
@@ -59,12 +52,25 @@ object CommandHandler extends App {
     close()
   }
 
-}
+  def close(): Unit = {
+    println("Shutting down...")
+    streams.close()
+  }
 
-object CommandHandlerTopology {
-  def invoicesTable(builder: StreamsBuilder): KTable[UUID, Snapshot[Invoice]] = {
-    val snapshotReducer = new SnapshotReducer(InvoiceReducer)
+  def executeCommands(commands: KStream[UUID, EventSourcedCommand],
+                      snapshots: KTable[UUID, Snapshot[Invoice]]): KStream[UUID, CommandExecutionResult] = {
+    val storeName = snapshots.queryableStoreName()
+    val storeType: QueryableStoreType[ReadOnlyKeyValueStore[UUID, Snapshot[Invoice]]] =
+      QueryableStoreTypes.keyValueStore()
 
+    commands.map { (id: UUID, command: EventSourcedCommand) =>
+      val store = streams.store(storeName, storeType)
+      val snapshot = Option(store.get(id)).getOrElse(reducer.initializer())
+      KeyValue.pair(id, command(snapshot))
+    }
+  }
+
+  def snapshotsTable(builder: StreamsBuilder): KTable[UUID, Snapshot[Invoice]] = {
     val materialized: Materialized[UUID, Snapshot[Invoice], KeyValueStore[Bytes, Array[Byte]]] =
       Materialized
         .as(Config.SnapshotsStore)
@@ -75,29 +81,13 @@ object CommandHandlerTopology {
       .stream(Config.EventsTopic, Consumed.`with`(UuidSerde, EventSerde))
       .groupByKey()
       .aggregate(
-        snapshotReducer.initializer,
-        snapshotReducer.aggregator,
+        reducer.initializer,
+        reducer.aggregator,
         materialized)
   }
 
-  def commandsStream(builder: StreamsBuilder,
-                     invoices: KTable[UUID, Snapshot[Invoice]]): KStream[UUID, CommandAndInvoice] = {
-    val joiner: ValueJoiner[EventSourcedCommand, Snapshot[Invoice], CommandAndInvoice] =
-      (command: EventSourcedCommand, snapshot: Snapshot[Invoice]) =>
-        CommandAndInvoice.from(command, snapshot)
-
-    val joined: Joined[UUID, EventSourcedCommand, Snapshot[Invoice]] =
-      Joined.`with`(UuidSerde, EventSourcedCommandSerde, SnapshotSerde)
-
-    builder
-      .stream(Config.CommandsTopic, Consumed.`with`(UuidSerde, EventSourcedCommandSerde))
-      .leftJoin[Snapshot[Invoice], CommandAndInvoice](invoices, joiner, joined)
-  }
-
-  def executeCommands(commands: KStream[UUID, CommandAndInvoice]): KStream[UUID, CommandExecutionResult] = {
-    commands.map { (id: UUID, command: CommandAndInvoice) =>
-      new KeyValue(id, command.execute)
-    }
+  def commandsStream(builder: StreamsBuilder): KStream[UUID, EventSourcedCommand] = {
+    builder.stream(Config.CommandsTopic, Consumed.`with`(UuidSerde, EventSourcedCommandSerde))
   }
 
   def eventsStream(results: KStream[UUID, CommandExecutionResult]): KStream[UUID, InvoiceEvent] = {
@@ -108,4 +98,5 @@ object CommandHandlerTopology {
 
     results.flatMapValues[InvoiceEvent](valueMapper)
   }
+
 }

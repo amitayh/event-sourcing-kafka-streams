@@ -61,13 +61,9 @@ object Projector extends App {
 
 object ProjectorTopology {
   def connect(): DB = {
-    Class.forName("com.mysql.cj.jdbc.Driver")
-    val conn = DriverManager.getConnection(
-      "jdbc:mysql://localhost:3306/invoices",
-      "root",
-      "")
-
-    DB(conn)
+    val file = sys.env("DB")
+    val url = s"jdbc:sqlite:$file"
+    DB(DriverManager.getConnection(url))
   }
 
   def snapshotStream(builder: StreamsBuilder): KStream[UUID, Snapshot[Invoice]] = {

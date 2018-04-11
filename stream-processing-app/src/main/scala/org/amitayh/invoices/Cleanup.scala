@@ -34,7 +34,7 @@ object Cleanup extends App {
 
   println("Truncating tables...")
   val db = ProjectorTopology.connect()
-  db.update(sql"TRUNCATE TABLE invoices")
+  db.update(sql"DELETE FROM invoices")
 
   admin.close()
   db.close()

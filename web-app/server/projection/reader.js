@@ -8,8 +8,8 @@ const toRecord = row => ({
   status: row.status
 });
 
-export const reader = conn => () => new Promise((resolve, reject) => {
-  conn.query('SELECT * FROM invoices', (error, results) => {
+export const reader = db => () => new Promise((resolve, reject) => {
+  db.all('SELECT * FROM invoices ORDER BY ROWID', (error, results) => {
     if (error) {
       reject(error);
     } else {

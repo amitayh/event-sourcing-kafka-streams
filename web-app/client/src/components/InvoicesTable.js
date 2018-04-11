@@ -9,9 +9,9 @@ export default class InvoicesTable extends PureComponent {
       <table className="table table-bordered table-hover">
         <thead>
           <tr>
-            <th>ID</th>
+            {/*<th>ID</th>*/}
             <th>Customer</th>
-            <th>Email</th>
+            <th>Due date</th>
             <th>Total</th>
             <th>Status</th>
             <th>Actions</th>
@@ -36,9 +36,9 @@ class InvoicesRow extends PureComponent {
     const payDisabled = (invoice.status === 'Paid');
     return (
       <tr>
-        <td>{invoice.id}</td>
-        <td>{invoice.customerName}</td>
-        <td>{invoice.customerEmail}</td>
+        {/*<td>{invoice.id}</td>*/}
+        <td>{invoice.customerName} &lt;{invoice.customerEmail}&gt;</td>
+        <td>{invoice.dueDate}</td>
         <td align="right">{formatter.format(invoice.total)}</td>
         <td>{invoice.status}</td>
         <td>

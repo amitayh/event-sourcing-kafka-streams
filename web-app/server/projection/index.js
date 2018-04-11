@@ -1,7 +1,6 @@
-import {conn} from './connection';
+import {db} from './db';
 import {reader} from './reader';
 
-conn.connect();
-const read = reader(conn);
+const read = reader(db);
 
 export const getInvoices = () => read();
