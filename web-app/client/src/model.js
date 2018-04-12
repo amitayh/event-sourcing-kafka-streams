@@ -4,18 +4,18 @@ const chance = new Chance();
 
 const randomLineItem = () => ({
   description: chance.sentence({words: 4}),
-  quantity: chance.integer({min: 1, max: 20}),
+  quantity: chance.integer({min: 1, max: 5}),
   price: chance.integer({min: 1, max: 100})
 });
 
-const randomDraft = () => ({
+export const randomDraft = () => ({
   customer: {
     name: chance.name(),
     email: chance.email()
   },
   issueDate: '2018-04-01',
   dueDate: '2018-05-01',
-  lineItems: chance.n(randomLineItem, chance.d6())
+  lineItems: chance.n(randomLineItem, chance.integer({min: 2, max: 5}))
 });
 
 export const emptyLineItem = {
@@ -42,6 +42,7 @@ export const pendingInvoice = id => ({
 });
 
 export const initialState = {
+  page: 'list',
   loading: false,
   invoices: [],
   draft: randomDraft(),

@@ -9,7 +9,7 @@ export default class InvoicesTable extends PureComponent {
       <table className="table table-bordered table-hover">
         <thead>
           <tr>
-            {/*<th>ID</th>*/}
+            <th>ID</th>
             <th>Customer</th>
             <th>Due date</th>
             <th>Total</th>
@@ -33,19 +33,26 @@ export default class InvoicesTable extends PureComponent {
 class InvoicesRow extends PureComponent {
   render() {
     const {invoice, onPay} = this.props;
-    const payDisabled = (invoice.status === 'Paid');
+    const status = invoice.status;
+    const payDisabled = (status === 'Paid');
+    const statusStyle = (status === 'Paid') ? 'success' : '';
     return (
       <tr>
-        {/*<td>{invoice.id}</td>*/}
-        <td>{invoice.customerName} &lt;{invoice.customerEmail}&gt;</td>
+        <td>{invoice.id}</td>
+        <td>
+          {invoice.customerName}
+          {' '}
+          &lt;<a href={`mailto:${invoice.customerEmail}`}>{invoice.customerEmail}</a>&gt;
+        </td>
         <td>{invoice.dueDate}</td>
         <td align="right">{formatter.format(invoice.total)}</td>
-        <td>{invoice.status}</td>
+        <td className={statusStyle}>{status}</td>
         <td>
           <button
-            className="btn btn-success"
+            className="btn btn-default"
             disabled={payDisabled}
-            onClick={() => onPay()}>Pay</button>
+            onClick={() => onPay()}
+          >Pay</button>
         </td>
       </tr>
     );

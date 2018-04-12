@@ -1,5 +1,15 @@
 import * as api from './api';
-import {emptyDraft, emptyLineItem, pendingInvoice} from './model';
+import {emptyLineItem, pendingInvoice, randomDraft} from './model';
+
+export const newInvoicePage = {
+  type: 'NEW_INVOICE_PAGE',
+  nextState: state => ({...state, page: 'new', draft: randomDraft()})
+};
+
+export const listPage = {
+  type: 'LIST_PAGE',
+  nextState: state => ({...state, page: 'list', draft: null})
+};
 
 export const fetchInvoicesSuccess = invoices => ({
   type: 'FETCH_INVOICES_SUCCESS',
@@ -89,7 +99,7 @@ export const commandExecutionFinished = commandId => ({
 
 export const createInvoice = draft => ({
   type: 'CREATE_INVOICE',
-  nextState: state => ({...state, draft: emptyDraft}),
+  nextState: listPage.nextState,
   runEffect: dispatch => {
     api.createInvoice(draft)
       .then(command => dispatch(commandExecutionStarted(command)));
