@@ -3,8 +3,6 @@ package org.amitayh.invoices.domain
 import java.time.LocalDate
 import java.util.UUID
 
-import org.amitayh.invoices.{CommandExecutionResult, EventSourcedCommand, Snapshot, SnapshotReducer}
-
 import scala.collection.immutable.Seq
 import scala.util.{Failure, Success, Try}
 
@@ -47,15 +45,4 @@ case class RemoveItem(lineItemId: UUID) extends InvoiceCommand {
 case class PayInvoice() extends InvoiceCommand {
   override def apply(invoice: Invoice): Try[Seq[InvoiceEvent]] =
     Success(PaymentReceived(invoice.total) :: Nil)
-}
-
-case class CommandAndInvoice(command: EventSourcedCommand, snapshot: Snapshot[Invoice]) {
-  def execute: CommandExecutionResult = command(snapshot)
-}
-
-object CommandAndInvoice {
-  private val snapshotReducer = new SnapshotReducer(InvoiceReducer)
-
-  def from(command: EventSourcedCommand, snapshot: Snapshot[Invoice]): CommandAndInvoice =
-    CommandAndInvoice(command, Option(snapshot).getOrElse(snapshotReducer.initializer()))
 }

@@ -36,14 +36,12 @@ trait StreamProcessor {
     streams.store(storeName, storeType)
   }
 
-  def start(): Unit = try {
+  def start(): Unit = {
     println("Starting...")
     streams.start()
     println("Started.")
     sys.ShutdownHookThread(close())
     latch.await()
-  } finally {
-    close()
   }
 
   def close(): Unit = {
