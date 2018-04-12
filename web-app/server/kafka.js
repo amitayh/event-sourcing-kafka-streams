@@ -1,14 +1,10 @@
 import uuidv4 from 'uuid/v4';
-import bytesToUuid from 'uuid/lib/bytesToUuid'
 import {Client, ConsumerGroup, HighLevelProducer} from 'kafka-node';
 
-const defaultOptions = {keyEncoding: 'buffer'};
-
-export const startConsumer = (topic, options, f) => {
-  const mergedOptions = Object.assign({}, defaultOptions, options);
-  const consumer = new ConsumerGroup(mergedOptions, topic);
+export const startConsumer = (topic, f) => {
+  const consumer = new ConsumerGroup({}, topic);
   consumer.on('message', message => {
-    f(bytesToUuid(message.key), JSON.parse(message.value));
+    f(message.key, JSON.parse(message.value));
   });
 };
 
@@ -20,8 +16,6 @@ commandsProducer.on('ready', () => {
   console.log('commands producer ready')
 });
 
-const uuidToBytes = uuid => Buffer.from(uuid.replace(/-/g, ''), 'hex');
-
 const executeCommand = (invoiceId, commandPayload) => {
   const commandId = uuidv4();
   const command = {
@@ -31,8 +25,7 @@ const executeCommand = (invoiceId, commandPayload) => {
   const payload = {
     topic: commandsTopic,
     messages: [JSON.stringify(command)],
-    key: uuidToBytes(invoiceId),
-    timestamp: Date.now()
+    key: invoiceId
   };
   return new Promise((resolve, reject) => {
     commandsProducer.send([payload], err => {

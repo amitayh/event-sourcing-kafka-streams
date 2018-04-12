@@ -47,16 +47,8 @@ object JsonSerde {
   val CommandResultSerde: Serde[CommandExecutionResult] = deriveSerde
 
   val UuidSerde: SimpleSerde[UUID] = new SimpleSerde[UUID] {
-    override def serialize(data: UUID): Array[Byte] = {
-      val bytes = ByteBuffer.allocate(16)
-      bytes.putLong(data.getMostSignificantBits)
-      bytes.putLong(data.getLeastSignificantBits)
-      bytes.array()
-    }
-    override def deserialize(data: Array[Byte]): UUID = {
-      val bytes = ByteBuffer.wrap(data)
-      new UUID(bytes.getLong, bytes.getLong)
-    }
+    override def serialize(data: UUID): Array[Byte] = data.toString.getBytes
+    override def deserialize(data: Array[Byte]): UUID = UUID.fromString(new String(data))
   }
 
   def deriveSerde[T <: AnyRef](implicit decode: Lazy[DerivedDecoder[T]],

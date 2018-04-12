@@ -15,7 +15,7 @@ app.use(express.static('client/build'));
 app.use('/api', api);
 
 // WS
-startConsumer('invoice-command-results', {}, (id, result) => {
+startConsumer('invoice-command-results', (id, result) => {
   if (result.CommandSucceeded) {
     const commandId = result.CommandSucceeded.commandId;
     const socketId = commands[commandId];
@@ -23,7 +23,7 @@ startConsumer('invoice-command-results', {}, (id, result) => {
     socket.to(socketId).emit('command-succeeded', commandId);
   }
 });
-startConsumer('invoice-records', {}, (id, record) => {
+startConsumer('invoice-records', (id, record) => {
   socket.sockets.emit('invoice-updated', {...record, id});
 });
 
