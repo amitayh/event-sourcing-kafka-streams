@@ -15,6 +15,8 @@ object CommandHandler extends App with StreamProcessor {
 
   lazy val reducer = new SnapshotReducer(InvoiceReducer)
 
+  lazy val store = getStore[UUID, Snapshot[Invoice]](Config.SnapshotsStore)
+
   override def appId: String = Config.CommandsGroupId
 
   override def topology: Topology = {
@@ -40,10 +42,8 @@ object CommandHandler extends App with StreamProcessor {
     }
   }
 
-  def loadSnapshot(id: UUID): Snapshot[Invoice] = {
-    val store = getStore[UUID, Snapshot[Invoice]](Config.SnapshotsStore)
+  def loadSnapshot(id: UUID): Snapshot[Invoice] =
     Option(store.get(id)).getOrElse(reducer.initializer())
-  }
 
   def snapshotsTable(builder: StreamsBuilder): KTable[UUID, Snapshot[Invoice]] = {
     val materialized: Materialized[UUID, Snapshot[Invoice], KeyValueStore[Bytes, Array[Byte]]] =

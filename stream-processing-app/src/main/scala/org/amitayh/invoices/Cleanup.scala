@@ -1,11 +1,12 @@
 package org.amitayh.invoices
 
-import java.util.Collections.singletonList
 import java.util.Properties
 
 import com.github.takezoe.scala.jdbc._
+import org.amitayh.invoices.Config.Topics
 import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, NewTopic}
 
+import scala.collection.JavaConverters._
 import scala.util.Try
 
 object Cleanup extends App {
@@ -16,21 +17,18 @@ object Cleanup extends App {
     AdminClient.create(props)
   }
 
+  println(s"Deleting topics...")
+  val deleteResult = Try(admin.deleteTopics(Topics.asJava).all().get())
+  println(deleteResult)
+  println("-")
 
-  Config.Topics.foreach { topic =>
-    println(s"Deleting topic $topic...")
-    val deleteResult = Try(admin.deleteTopics(singletonList(topic)).all().get())
-    println(deleteResult)
-    println("-")
+  Thread.sleep(100)
 
-    Thread.sleep(100)
-
-    println(s"Creating topic $topic...")
-    val newTopic = new NewTopic(topic, 4, 1)
-    val createResult = Try(admin.createTopics(singletonList(newTopic)).all().get())
-    println(createResult)
-    println("-")
-  }
+  println(s"Creating topics...")
+  val topics = Topics.map(new NewTopic(_, 4, 1))
+  val createResult = Try(admin.createTopics(topics.asJava).all().get())
+  println(createResult)
+  println("-")
 
   println("Truncating tables...")
   val db = Projector.connect()

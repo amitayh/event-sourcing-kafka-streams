@@ -6,72 +6,66 @@ export default class InvoiceForm extends PureComponent {
     const {customer, lineItems} = invoice;
     return (
       <div>
-        <form>
-          <div className="row">
-            <div className="col-md-3 mb-3">
-              <label htmlFor="customer-name">Customer name</label>
-              <input
-                type="text"
-                id="customer-name"
-                className="form-control"
-                value={customer.name}
-                onChange={e => {
-                  const updatedCustomer = {name: e.target.value, email: customer.email};
-                  onChange({...invoice, customer: updatedCustomer})
-                }}
-                required
-              />
-            </div>
-            <div className="col-md-3 mb-3">
-              <label htmlFor="customer-email">Customer email</label>
-              <input
-                type="email"
-                id="customer-email"
-                className="form-control"
-                value={customer.email}
-                onChange={e => {
-                  const updatedCustomer = {name: customer.name, email: e.target.value};
-                  onChange({...invoice, customer: updatedCustomer})
-                }}
-                required
-              />
-            </div>
-            <div className="col-md-3 mb-3">
-              <label htmlFor="issue-date">Issue date</label>
-              <input
-                type="date"
-                id="issue-date"
-                className="form-control"
-                value={invoice.issueDate}
-                onChange={e => onChange({...invoice, issueDate: e.target.value})}
-                required
-              />
-            </div>
-            <div className="col-md-3 mb-3">
-              <label htmlFor="due-date">Due date</label>
-              <input
-                type="date"
-                id="due-date"
-                className="form-control"
-                value={invoice.dueDate}
-                onChange={e => onChange({...invoice, dueDate: e.target.value})}
-                required
-              />
-            </div>
+        <div className="row">
+          <div className="col-md-3">
+            <label htmlFor="customer-name">Customer name</label>
+            <input
+              type="text"
+              id="customer-name"
+              className="form-control"
+              value={customer.name}
+              onChange={e => {
+                const updatedCustomer = {name: e.target.value, email: customer.email};
+                onChange({...invoice, customer: updatedCustomer})
+              }}
+              required
+            />
           </div>
-          <div className="row">
-
+          <div className="col-md-3 mb-3">
+            <label htmlFor="customer-email">Customer email</label>
+            <input
+              type="email"
+              id="customer-email"
+              className="form-control"
+              value={customer.email}
+              onChange={e => {
+                const updatedCustomer = {name: customer.name, email: e.target.value};
+                onChange({...invoice, customer: updatedCustomer})
+              }}
+              required
+            />
           </div>
-        </form>
-
-        <h4>Line items</h4>
+          <div className="col-md-3">
+            <label htmlFor="issue-date">Issue date</label>
+            <input
+              type="date"
+              id="issue-date"
+              className="form-control"
+              value={invoice.issueDate}
+              onChange={e => onChange({...invoice, issueDate: e.target.value})}
+              required
+            />
+          </div>
+          <div className="col-md-3">
+            <label htmlFor="due-date">Due date</label>
+            <input
+              type="date"
+              id="due-date"
+              className="form-control"
+              value={invoice.dueDate}
+              onChange={e => onChange({...invoice, dueDate: e.target.value})}
+              required
+            />
+          </div>
+        </div>
         <table className="table table-bordered">
+          <caption>Line items</caption>
           <thead>
           <tr>
             <th>#</th>
-            <th>Description</th>
-            <th>Price</th>
-            <th>Qty.</th>
+            <th width="60%">Description</th>
+            <th width="15%">Price</th>
+            <th width="15%">Qty.</th>
             <th>Actions</th>
           </tr>
           </thead>
