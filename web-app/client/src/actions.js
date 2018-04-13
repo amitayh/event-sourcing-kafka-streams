@@ -1,6 +1,7 @@
 import debounce from 'debounce';
+import uuidv4 from 'uuid/v4';
 import * as api from './api';
-import {emptyLineItem, pendingInvoice, randomDraft} from './model';
+import {emptyLineItem, pendingInvoice, randomDraft, tempId} from './model';
 
 export const newInvoicePage = {
   type: 'NEW_INVOICE_PAGE',
@@ -17,33 +18,26 @@ export const clearMessage = {
   nextState: state => ({...state, message: null})
 };
 
-const clearMessageDebounded = debounce(dispatch => {
-  dispatch(clearMessage);
-}, 3000);
+const clearMessageDelayed =
+  debounce(dispatch => dispatch(clearMessage), 3000);
 
 export const showMessage = message => ({
   type: 'SHOW_MESSAGE',
   nextState: state => ({...state, message}),
-  runEffect: dispatch => clearMessageDebounded(dispatch)
+  runEffect: dispatch => clearMessageDelayed(dispatch)
 });
 
 export const fetchInvoicesSuccess = invoices => ({
   type: 'FETCH_INVOICES_SUCCESS',
-  nextState: state => ({...state, loading: false, invoices})
+  nextState: state => ({...state, invoices})
 });
-
-export const fetchInvoicesFailure = {
-  type: 'FETCH_INVOICES_FAILURE',
-  nextState: state => ({...state, loading: false, invoices: []})
-};
 
 export const fetchInvoices = {
   type: 'FETCH_INVOICES',
-  nextState: state => ({...state, loading: true, invoices: []}),
+  nextState: state => ({...state, invoices: []}),
   runEffect: dispatch => {
     api.fetchInvoices()
       .then(invoices => dispatch(fetchInvoicesSuccess(invoices)))
-      .catch(() => dispatch(fetchInvoicesFailure))
   }
 };
 
@@ -96,7 +90,11 @@ export const lineItemAdded = {
 export const emptyInvoiceAdded = invoiceId => ({
   type: 'EMPTY_INVOICE_ADDED',
   nextState: state => {
-    const invoices = [...state.invoices, pendingInvoice(invoiceId)];
+    const invoices = state.invoices.map(invoice => {
+      return (invoice.id === tempId) ?
+        {...invoice, id: invoiceId} :
+        invoice
+    });
     return {...state, invoices}
   }
 });
@@ -104,22 +102,20 @@ export const emptyInvoiceAdded = invoiceId => ({
 export const commandExecutionStarted =
   showMessage('Loading...');
 
-export const commandAccepted = commandId =>
-  showMessage(`Accepted ${commandId}`);
-
 export const commandExecutionFinished = commandId =>
   showMessage(`Success! ${commandId}`);
 
 export const createInvoice = draft => ({
   type: 'CREATE_INVOICE',
-  nextState: listPage.nextState,
+  nextState: state => {
+    const invoices = [pendingInvoice, ...state.invoices];
+    return {...state, page: 'list', draft: null, invoices};
+  },
   runEffect: dispatch => {
+    const invoiceId = uuidv4();
     dispatch(commandExecutionStarted);
-    api.createInvoice(draft)
-      .then(command => {
-        dispatch(emptyInvoiceAdded(command.invoiceId));
-        dispatch(commandAccepted(command.commandId));
-      });
+    dispatch(emptyInvoiceAdded(invoiceId));
+    api.createInvoice(invoiceId, draft);
   }
 });
 
@@ -128,9 +124,6 @@ export const payInvoice = id => ({
   nextState: state => state,
   runEffect: dispatch => {
     dispatch(commandExecutionStarted);
-    api.payInvoice(id)
-      .then(command => {
-        dispatch(commandAccepted(command.commandId))
-      });
+    api.payInvoice(id);
   }
 });

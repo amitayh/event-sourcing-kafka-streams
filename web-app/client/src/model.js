@@ -8,13 +8,21 @@ const randomLineItem = () => ({
   price: chance.integer({min: 1, max: 100})
 });
 
+const plusMonths = (date, monthsToAdd) => new Date(
+  date.getFullYear(),
+  date.getMonth() + monthsToAdd,
+  date.getDate()
+);
+
+const formatDate = date => date.toISOString().substr(0, 10);
+
 export const randomDraft = () => ({
   customer: {
     name: chance.name(),
     email: chance.email()
   },
-  issueDate: '2018-04-01',
-  dueDate: '2018-05-01',
+  issueDate: formatDate(new Date()),
+  dueDate: formatDate(plusMonths(new Date(), 1)),
   lineItems: chance.n(randomLineItem, chance.integer({min: 2, max: 5}))
 });
 
@@ -34,17 +42,13 @@ export const emptyDraft = {
   lineItems: []
 };
 
-export const pendingInvoice = id => ({
-  id,
-  customerName: '',
-  customerEmail: '',
-  total: ''
-});
+export const tempId = '__TEMP__';
+
+export const pendingInvoice = {id: tempId, pending: true};
 
 export const initialState = {
   page: 'list',
-  loading: false,
   invoices: [],
-  draft: randomDraft(),
+  draft: null,
   message: null,
 };

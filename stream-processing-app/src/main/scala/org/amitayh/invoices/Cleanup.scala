@@ -30,9 +30,24 @@ object Cleanup extends App {
   println(createResult)
   println("-")
 
-  println("Truncating tables...")
+  println("Creating tables...")
   val db = Projector.connect()
-  db.update(sql"DELETE FROM invoices")
+  db.transaction {
+    db.update(sql"DROP TABLE IF EXISTS invoices")
+    db.update {
+      sql"""
+        CREATE TABLE invoices (
+          id             TEXT PRIMARY KEY,
+          customer_name  TEXT,
+          customer_email TEXT,
+          status         TEXT,
+          issue_date     TEXT,
+          due_date       TEXT,
+          total          REAL
+        );
+      """
+    }
+  }
 
   admin.close()
   db.close()

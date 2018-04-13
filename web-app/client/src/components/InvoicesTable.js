@@ -33,6 +33,27 @@ export default class InvoicesTable extends PureComponent {
 class InvoicesRow extends PureComponent {
   render() {
     const {invoice, onPay} = this.props;
+    return invoice.pending ?
+      this.renderPending(invoice) :
+      this.renderInvoice(invoice, onPay);
+  }
+
+  renderPending(invoice) {
+    return (
+      <tr className="warning">
+        <td>{invoice.id}</td>
+        <td/>
+        <td/>
+        <td/>
+        <td/>
+        <td>
+          <button className="btn btn-default" disabled>Pay</button>
+        </td>
+      </tr>
+    );
+  }
+
+  renderInvoice(invoice, onPay) {
     const status = invoice.status;
     const payDisabled = (status === 'Paid');
     const statusStyle = (status === 'Paid') ? 'success' : '';

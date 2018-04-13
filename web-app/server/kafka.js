@@ -16,7 +16,7 @@ commandsProducer.on('ready', () => {
   console.log('commands producer ready')
 });
 
-const executeCommand = (invoiceId, commandPayload) => {
+export const executeCommand = (invoiceId, commandPayload) => {
   const commandId = uuidv4();
   const command = {
     commandId: commandId,
@@ -36,20 +36,4 @@ const executeCommand = (invoiceId, commandPayload) => {
       }
     });
   });
-};
-
-export const createInvoice = draft => {
-  return executeCommand(uuidv4(), {
-    CreateInvoice: {
-      customerName: draft.customer.name,
-      customerEmail: draft.customer.email,
-      issueDate: draft.issueDate,
-      dueDate: draft.dueDate,
-      lineItems: draft.lineItems
-    }
-  });
-};
-
-export const payInvoice = invoiceId => {
-  return executeCommand(invoiceId, {PayInvoice: {}});
 };

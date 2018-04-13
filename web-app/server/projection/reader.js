@@ -9,7 +9,7 @@ const toRecord = row => ({
 });
 
 export const reader = db => () => new Promise((resolve, reject) => {
-  db.all('SELECT * FROM invoices ORDER BY ROWID', (error, results) => {
+  db.all('SELECT * FROM invoices ORDER BY ROWID DESC', (error, results) => {
     if (error) {
       reject(error);
     } else {
