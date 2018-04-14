@@ -41,13 +41,27 @@ export const fetchInvoices = {
   }
 };
 
-export const invoiceUpdated = updated => ({
+const invoiceInList = (invoices, needle) => {
+  const result = invoices.find(invoice => invoice.id === needle.id);
+  return (result !== undefined);
+};
+
+const updateList = (invoices, updated) => {
+  return invoices.map(invoice => {
+    return (invoice.id === updated.id) ? updated : invoice;
+  });
+};
+
+const addToList = (invoices, invoice) => [invoice, ...invoices];
+
+export const invoiceUpdated = invoice => ({
   type: 'INVOICE_UPDATED',
   nextState: state => {
-    const invoices = state.invoices.map(invoice => {
-      return (invoice.id === updated.id) ? updated : invoice;
-    });
-    return {...state, invoices};
+    const invoices = state.invoices;
+    const updated = invoiceInList(invoices, invoice) ?
+      updateList(invoices, invoice) :
+      addToList(invoices, invoice);
+    return {...state, invoices: updated};
   }
 });
 
