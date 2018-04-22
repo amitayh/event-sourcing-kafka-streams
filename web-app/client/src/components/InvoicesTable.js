@@ -2,14 +2,17 @@ import React, {PureComponent} from 'react';
 
 const formatter = new Intl.NumberFormat(['en-US'], {style: 'currency', currency: 'USD'});
 
+const zeroPad = number => number.toString().padStart(6, '0');
+
 export default class InvoicesTable extends PureComponent {
   render() {
     const {invoices, onPay} = this.props;
+    const total = invoices.length;
     return (
       <table className="table table-bordered table-hover">
         <thead>
           <tr>
-            <th>ID</th>
+            <th>#</th>
             <th>Customer</th>
             <th>Due date</th>
             <th>Total</th>
@@ -18,9 +21,10 @@ export default class InvoicesTable extends PureComponent {
           </tr>
         </thead>
         <tbody>
-          {invoices.map(invoice => {
+          {invoices.map((invoice, index) => {
             return <InvoicesRow
               key={invoice.id}
+              number={total - index}
               invoice={invoice}
               onPay={() => onPay(invoice.id)}/>;
           })}
@@ -32,16 +36,16 @@ export default class InvoicesTable extends PureComponent {
 
 class InvoicesRow extends PureComponent {
   render() {
-    const {invoice, onPay} = this.props;
+    const {invoice, number, onPay} = this.props;
     return invoice.pending ?
-      this.renderPending(invoice) :
-      this.renderInvoice(invoice, onPay);
+      this.renderPending(invoice, number) :
+      this.renderInvoice(invoice, number, onPay);
   }
 
-  renderPending(invoice) {
+  renderPending(invoice, number) {
     return (
       <tr className="warning">
-        <td>{invoice.id}</td>
+        <td>{zeroPad(number)}</td>
         <td/>
         <td/>
         <td/>
@@ -53,13 +57,13 @@ class InvoicesRow extends PureComponent {
     );
   }
 
-  renderInvoice(invoice, onPay) {
+  renderInvoice(invoice, number, onPay) {
     const status = invoice.status;
     const payDisabled = (status === 'Paid');
     const statusStyle = (status === 'Paid') ? 'success' : '';
     return (
       <tr>
-        <td>{invoice.id}</td>
+        <td>{zeroPad(number)}</td>
         <td>
           {invoice.customerName}
           {' '}
