@@ -18,7 +18,7 @@ object Config {
   val Topics = Set(
     topic(CommandsTopic, TopicConfig.RETENTION_MS_CONFIG -> 5.minutes),
     topic(CommandResultTopic, TopicConfig.RETENTION_MS_CONFIG -> 5.minutes),
-    topic(EventsTopic, TopicConfig.RETENTION_MS_CONFIG -> "0"),
+    topic(EventsTopic, TopicConfig.RETENTION_MS_CONFIG -> "-1"),
     topic(
       SnapshotsTopic,
       TopicConfig.CLEANUP_POLICY_CONFIG -> TopicConfig.CLEANUP_POLICY_COMPACT,
