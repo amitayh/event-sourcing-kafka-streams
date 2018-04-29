@@ -116,8 +116,11 @@ export const emptyInvoiceAdded = invoiceId => ({
 export const commandExecutionStarted =
   showMessage('Loading...');
 
-export const commandExecutionFinished = commandId =>
-  showMessage(`Success! ${commandId}`);
+export const commandExecutionSucceeded = commandId =>
+  showMessage(`Command ${commandId} succeeded!`);
+
+export const commandExecutionFailed = (commandId, cause) =>
+  showMessage(`Command ${commandId} failed!\n${cause}`);
 
 export const createInvoice = draft => ({
   type: 'CREATE_INVOICE',
@@ -139,5 +142,14 @@ export const payInvoice = id => ({
   runEffect: dispatch => {
     dispatch(commandExecutionStarted);
     api.payInvoice(id);
+  }
+});
+
+export const removeLineItem = (invoiceId, lineItemId) => ({
+  type: 'REMOVE_LINE_ITEM',
+  nextState: state => state,
+  runEffect: dispatch => {
+    dispatch(commandExecutionStarted);
+    api.removeLineItem(invoiceId, lineItemId);
   }
 });

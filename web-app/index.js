@@ -4,7 +4,7 @@ import express from 'express';
 import {Server} from 'http';
 import io from 'socket.io';
 import {startConsumer} from './server/kafka';
-import {commands} from './server/socket';
+import {initCommandHandler} from './server/socket';
 import api from './server/api';
 
 const app = express();
@@ -15,13 +15,14 @@ app.use(express.static('client/build'));
 app.use('/api', api);
 
 // WS
+const commandHandler = initCommandHandler(socket);
 startConsumer('invoice-command-results', (id, result) => {
-  if (result.CommandSucceeded) {
-    const commandId = result.CommandSucceeded.commandId;
-    const socketId = commands[commandId];
-    delete commands[commandId];
-    socket.to(socketId).emit('command-succeeded', commandId);
-  }
+  Object.keys(result).forEach(key => {
+    const handler = commandHandler[key];
+    if (handler) {
+      handler(result[key]);
+    }
+  });
 });
 startConsumer('invoice-records', (id, record) => {
   socket.sockets.emit('invoice-updated', {...record, id});

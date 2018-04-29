@@ -76,8 +76,7 @@ class InvoicesRow extends PureComponent {
           <button
             className="btn btn-default"
             disabled={payDisabled}
-            onClick={() => onPay()}
-          >Pay</button>
+            onClick={() => onPay()}>Pay</button>
         </td>
       </tr>
     );

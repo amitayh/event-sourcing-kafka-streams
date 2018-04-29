@@ -43,7 +43,7 @@ case class AddLineItem(description: String,
     success(LineItemAdded(UUID.randomUUID(), description, quantity, price))
 }
 
-case class RemoveItem(lineItemId: UUID) extends InvoiceCommand {
+case class RemoveLineItem(lineItemId: UUID) extends InvoiceCommand {
   override def apply(invoice: Invoice): Result = {
     if (invoice.hasLineItem(lineItemId)) success(LineItemRemoved(lineItemId))
     else failure(LineItemDoesNotExist(lineItemId))

@@ -3,11 +3,14 @@ import ReactDOM from 'react-dom';
 import registerServiceWorker from './registerServiceWorker';
 import {socket} from './socket';
 import {initialState} from './model';
-import {commandExecutionFinished, fetchInvoices, invoiceUpdated} from './actions';
+import {commandExecutionFailed, commandExecutionSucceeded, fetchInvoices, invoiceUpdated} from './actions';
 import App from './components/App';
 
 socket.on('command-succeeded', commandId => {
-  dispatch(commandExecutionFinished(commandId));
+  dispatch(commandExecutionSucceeded(commandId));
+});
+socket.on('command-failed', command => {
+  dispatch(commandExecutionFailed(command.commandId, command.cause));
 });
 socket.on('invoice-updated', invoice => {
   dispatch(invoiceUpdated(invoice));
