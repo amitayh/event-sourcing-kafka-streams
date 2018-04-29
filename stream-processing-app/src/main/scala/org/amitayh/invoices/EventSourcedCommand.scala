@@ -2,7 +2,7 @@ package org.amitayh.invoices
 
 import java.util.UUID
 
-import org.amitayh.invoices.domain.{Invoice, InvoiceCommand, InvoiceEvent}
+import org.amitayh.invoices.domain.{Invoice, InvoiceCommand, InvoiceError, InvoiceEvent}
 
 import scala.collection.immutable.Seq
 
@@ -30,8 +30,8 @@ object CommandExecutionResult {
   def succeeded(commandId: UUID)(events: Seq[InvoiceEvent]): CommandExecutionResult =
     CommandSucceeded(commandId, events)
 
-  def failed(commandId: UUID)(cause: Throwable): CommandExecutionResult =
-    CommandFailed(commandId, cause.getMessage)
+  def failed(commandId: UUID)(error: InvoiceError): CommandExecutionResult =
+    CommandFailed(commandId, error.message)
 }
 
 case class CommandSucceeded(commandId: UUID, events: Seq[InvoiceEvent])
