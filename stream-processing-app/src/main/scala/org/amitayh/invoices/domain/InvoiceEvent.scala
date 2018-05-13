@@ -19,8 +19,8 @@ case class InvoiceCreated(customerName: String,
 
 case class LineItemAdded(lineItemId: UUID,
                          description: String,
-                         quantity: Double,
-                         price: Double) extends InvoiceEvent {
+                         quantity: BigDecimal,
+                         price: BigDecimal) extends InvoiceEvent {
   override def apply(invoice: Invoice): Invoice =
     invoice.addLineItem(lineItemId, description, quantity, price)
 }
@@ -30,7 +30,7 @@ case class LineItemRemoved(lineItemId: UUID) extends InvoiceEvent {
     invoice.removeLineItem(lineItemId)
 }
 
-case class PaymentReceived(amount: Double) extends InvoiceEvent {
+case class PaymentReceived(amount: BigDecimal) extends InvoiceEvent {
   override def apply(invoice: Invoice): Invoice = invoice.pay(amount)
 }
 

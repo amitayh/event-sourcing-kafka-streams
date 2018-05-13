@@ -6,7 +6,7 @@ case class InvoiceRecord(customerName: String,
                          customerEmail: String,
                          issueDate: String,
                          dueDate: String,
-                         total: Double,
+                         total: BigDecimal,
                          status: String)
 
 object InvoiceRecord {

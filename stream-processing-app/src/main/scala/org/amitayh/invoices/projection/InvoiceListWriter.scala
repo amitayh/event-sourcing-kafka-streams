@@ -16,7 +16,7 @@ class InvoiceListWriter(db: DB) {
           customer_email = ${record.customerEmail},
           issue_date = ${record.issueDate},
           due_date = ${record.dueDate},
-          total = ${record.total},
+          total = ${record.total.toDouble},
           status = ${record.status}
         WHERE id = $idString
       """

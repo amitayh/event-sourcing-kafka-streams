@@ -8,7 +8,7 @@ case class Invoice(customer: Customer,
                    dueDate: LocalDate,
                    lineItems: Map[UUID, LineItem],
                    status: InvoiceStatus,
-                   paid: Double) {
+                   paid: BigDecimal) {
 
   def setCustomer(name: String, email: String): Invoice =
     copy(customer = Customer(name, email))
@@ -18,8 +18,8 @@ case class Invoice(customer: Customer,
 
   def addLineItem(lineItemId: UUID,
                   description: String,
-                  quantity: Double,
-                  price: Double): Invoice = {
+                  quantity: BigDecimal,
+                  price: BigDecimal): Invoice = {
     val lineItem = LineItem(description, quantity, price)
     copy(lineItems = lineItems + (lineItemId -> lineItem))
   }
@@ -27,7 +27,7 @@ case class Invoice(customer: Customer,
   def removeLineItem(lineItemId: UUID): Invoice =
     copy(lineItems = lineItems - lineItemId)
 
-  def pay(amount: Double): Invoice = {
+  def pay(amount: BigDecimal): Invoice = {
     val newStatus = if (amount == balance) Paid else status
     copy(paid = paid + amount, status = newStatus)
   }
@@ -35,9 +35,10 @@ case class Invoice(customer: Customer,
   def hasLineItem(lineItemId: UUID): Boolean =
     lineItems.contains(lineItemId)
 
-  def total: Double = lineItems.values.foldLeft(0.0)(_ + _.total)
+  def total: BigDecimal =
+    lineItems.values.foldLeft[BigDecimal](0)(_ + _.total)
 
-  def balance: Double = total - paid
+  def balance: BigDecimal = total - paid
 
 }
 
@@ -57,8 +58,8 @@ object Customer {
   val Empty = Customer("", "")
 }
 
-case class LineItem(description: String, quantity: Double, price: Double) {
-  def total: Double = quantity * price
+case class LineItem(description: String, quantity: BigDecimal, price: BigDecimal) {
+  def total: BigDecimal = quantity * price
 }
 
 sealed trait InvoiceStatus
