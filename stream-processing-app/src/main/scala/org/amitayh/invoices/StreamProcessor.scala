@@ -3,6 +3,7 @@ package org.amitayh.invoices
 import java.util.Properties
 import java.util.concurrent.CountDownLatch
 
+import org.apache.kafka.streams.KafkaStreams.State
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor
 import org.apache.kafka.streams.state.{QueryableStoreType, QueryableStoreTypes, ReadOnlyKeyValueStore}
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig, Topology}
@@ -24,6 +25,10 @@ trait StreamProcessor {
     new KafkaStreams(topology, props)
   }
 
+  streams.setStateListener((newState: State, oldState: State) => {
+    println(s"$oldState -> $newState")
+  })
+
   streams.setUncaughtExceptionHandler((_: Thread, e: Throwable) => {
     e.printStackTrace()
     latch.countDown()
@@ -39,7 +44,6 @@ trait StreamProcessor {
   def start(): Unit = {
     println("Starting...")
     streams.start()
-    println("Started.")
     sys.ShutdownHookThread(close())
     latch.await()
   }
