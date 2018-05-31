@@ -4,7 +4,11 @@ import {Client, ConsumerGroup, HighLevelProducer} from 'kafka-node';
 export const startConsumer = (topic, f) => {
   const consumer = new ConsumerGroup({}, topic);
   consumer.on('message', message => {
-    f(message.key, JSON.parse(message.value));
+    try {
+      f(message.key, JSON.parse(message.value));
+    } catch (e) {
+      console.warn(e.message, message);
+    }
   });
 };
 

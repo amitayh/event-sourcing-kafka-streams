@@ -28,7 +28,7 @@ This is a POC for using [Kafka Streams](https://kafka.apache.org/documentation/s
 5. Start the [Projector](stream-processing-app/src/main/scala/org/amitayh/invoices/Projector.scala):
 
    ```
-   $ DB=~/projection.db sbt "runMain org.amitayh.invoices.CommandHandler"
+   $ DB=~/projection.db sbt "runMain org.amitayh.invoices.Projector"
    ```
 ## Running the web app
 
