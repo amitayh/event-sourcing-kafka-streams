@@ -31,6 +31,10 @@ export const payInvoice = invoiceId => {
   return execute(invoiceId, {PayInvoice: {}});
 };
 
+export const deleteInvoice = invoiceId => {
+  return execute(invoiceId, {DeleteInvoice: {}});
+};
+
 export const removeLineItem = (invoiceId, lineItemId) => {
   return execute(invoiceId, {RemoveLineItem: {lineItemId}});
 };

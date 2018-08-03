@@ -5,7 +5,10 @@ export const startConsumer = (topic, f) => {
   const consumer = new ConsumerGroup({}, topic);
   consumer.on('message', message => {
     try {
-      f(message.key, JSON.parse(message.value));
+      const value = message.value;
+      if (value !== '') {
+        f(message.key, JSON.parse(value));
+      }
     } catch (e) {
       console.warn(e.message, message);
     }

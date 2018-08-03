@@ -8,8 +8,15 @@ const toRecord = row => ({
   status: row.status
 });
 
+const sql = `
+  SELECT *
+  FROM invoices
+  WHERE status != 'Deleted'
+  ORDER BY ROWID DESC
+`;
+
 export const reader = db => () => new Promise((resolve, reject) => {
-  db.all('SELECT * FROM invoices ORDER BY ROWID DESC', (error, results) => {
+  db.all(sql, (error, results) => {
     if (error) {
       reject(error);
     } else {

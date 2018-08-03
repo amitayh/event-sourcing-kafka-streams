@@ -32,6 +32,9 @@ case class Invoice(customer: Customer,
     copy(paid = paid + amount, status = newStatus)
   }
 
+  def delete: Invoice =
+    copy(status = Deleted)
+
   def hasLineItem(lineItemId: UUID): Boolean =
     lineItems.contains(lineItemId)
 
@@ -65,3 +68,4 @@ case class LineItem(description: String, quantity: BigDecimal, price: BigDecimal
 sealed trait InvoiceStatus
 case object New extends InvoiceStatus
 case object Paid extends InvoiceStatus
+case object Deleted extends InvoiceStatus

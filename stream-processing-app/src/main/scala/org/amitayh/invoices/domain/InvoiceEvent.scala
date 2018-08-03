@@ -34,4 +34,8 @@ case class PaymentReceived(amount: BigDecimal) extends InvoiceEvent {
   override def apply(invoice: Invoice): Invoice = invoice.pay(amount)
 }
 
+case class InvoiceDeleted() extends InvoiceEvent {
+  override def apply(invoice: Invoice): Invoice = invoice.delete
+}
+
 case class InvoiceSentToCustomer() extends InvoiceEvent

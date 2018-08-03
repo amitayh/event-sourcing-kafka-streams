@@ -1,6 +1,6 @@
 import React, {PureComponent} from 'react';
 import InvoicesTable from './InvoicesTable';
-import {newInvoicePage, payInvoice, removeLineItem} from '../actions';
+import {newInvoicePage, payInvoice, deleteInvoice, removeLineItem} from '../actions';
 
 const id1 = '4d6b05ad-98ec-46e4-b3c7-d12ac0dddc77';
 const id2 = 'ccc77095-b1f7-4a65-82c6-f1014c205b53';
@@ -11,7 +11,10 @@ class InvoicesList extends PureComponent {
     return (
       <div>
         <h2>List</h2>
-        <InvoicesTable invoices={invoices} onPay={id => dispatch(payInvoice(id))}/>
+        <InvoicesTable
+          invoices={invoices}
+          onPay={id => dispatch(payInvoice(id))}
+          onDelete={id => dispatch(deleteInvoice(id))}/>
         <p>
           <button
             className="btn btn-primary"

@@ -6,7 +6,7 @@ const zeroPad = number => number.toString().padStart(6, '0');
 
 export default class InvoicesTable extends PureComponent {
   render() {
-    const {invoices, onPay} = this.props;
+    const {invoices, onPay, onDelete} = this.props;
     const total = invoices.length;
     return (
       <table className="table table-bordered table-hover">
@@ -26,7 +26,8 @@ export default class InvoicesTable extends PureComponent {
               key={invoice.id}
               number={total - index}
               invoice={invoice}
-              onPay={() => onPay(invoice.id)}/>;
+              onPay={() => onPay(invoice.id)}
+              onDelete={() => onDelete(invoice.id)}/>;
           })}
         </tbody>
       </table>
@@ -36,10 +37,14 @@ export default class InvoicesTable extends PureComponent {
 
 class InvoicesRow extends PureComponent {
   render() {
-    const {invoice, number, onPay} = this.props;
-    return invoice.pending ?
-      this.renderPending(invoice, number) :
-      this.renderInvoice(invoice, number, onPay);
+    const {invoice, number, onPay, onDelete} = this.props;
+    if (invoice.status === 'Deleted') {
+      return null;
+    } else if (invoice.pending) {
+      return this.renderPending(invoice, number);
+    } else {
+      return this.renderInvoice(invoice, number, onPay, onDelete);
+    }
   }
 
   renderPending(invoice, number) {
@@ -52,17 +57,21 @@ class InvoicesRow extends PureComponent {
         <td/>
         <td>
           <button className="btn btn-default" disabled>Pay</button>
+          {' '}
+          <button className="btn btn-default" disabled>Delete</button>
         </td>
       </tr>
     );
   }
 
-  renderInvoice(invoice, number, onPay) {
+  renderInvoice(invoice, number, onPay, onDelete) {
     const status = invoice.status;
-    const payDisabled = (status === 'Paid');
-    const statusStyle = (status === 'Paid') ? 'success' : '';
+    const isPaid = (status === 'Paid');
+    const isDeleting = !!invoice.deleting;
+    const statusStyle = isPaid ? 'success' : '';
+    const rowStyle = isDeleting ? 'danger' : '';
     return (
-      <tr>
+      <tr className={rowStyle}>
         <td>{zeroPad(number)}</td>
         <td>
           {invoice.customerName}
@@ -75,8 +84,14 @@ class InvoicesRow extends PureComponent {
         <td>
           <button
             className="btn btn-default"
-            disabled={payDisabled}
+            disabled={isPaid || isDeleting}
             onClick={() => onPay()}>Pay</button>
+          {' '}
+          <button
+            className="btn btn-danger"
+            disabled={isDeleting}
+            onClick={() => onDelete()}
+            >Delete</button>
         </td>
       </tr>
     );

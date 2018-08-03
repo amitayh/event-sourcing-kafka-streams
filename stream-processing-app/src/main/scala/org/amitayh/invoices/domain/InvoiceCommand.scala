@@ -54,3 +54,8 @@ case class PayInvoice() extends InvoiceCommand {
   override def apply(invoice: Invoice): Result =
     success(PaymentReceived(invoice.total))
 }
+
+case class DeleteInvoice() extends InvoiceCommand {
+  override def apply(invoice: Invoice): Result =
+    success(InvoiceDeleted())
+}

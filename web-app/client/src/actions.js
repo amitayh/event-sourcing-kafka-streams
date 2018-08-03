@@ -145,6 +145,22 @@ export const payInvoice = id => ({
   }
 });
 
+export const deleteInvoice = id => ({
+  type: 'DELETE_INVOICE',
+  nextState: state => {
+    const invoices = state.invoices.map(invoice => {
+      return (invoice.id === id) ?
+        {...invoice, deleting: true} :
+        invoice
+    });
+    return {...state, invoices}
+  },
+  runEffect: dispatch => {
+    dispatch(commandExecutionStarted);
+    api.deleteInvoice(id);
+  }
+});
+
 export const removeLineItem = (invoiceId, lineItemId) => ({
   type: 'REMOVE_LINE_ITEM',
   nextState: state => state,

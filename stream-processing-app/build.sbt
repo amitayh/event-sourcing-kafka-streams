@@ -4,13 +4,21 @@ version := "0.1"
 
 scalaVersion := "2.12.4"
 
-libraryDependencies ++= Seq(
-  "org.apache.kafka" % "kafka-clients" % "1.1.0",
-  "org.apache.kafka" % "kafka-streams" % "1.1.0",
+val kafkaStreamsVersion = "2.0.0"
+val circeVersion = "0.9.3"
 
-  "io.circe" %% "circe-core" % "0.9.1",
-  "io.circe" %% "circe-generic" % "0.9.1",
-  "io.circe" %% "circe-parser" % "0.9.1",
+val workaround: Unit = {
+  sys.props += "packaging.type" -> "jar"
+  ()
+}
+
+libraryDependencies ++= Seq(
+  "org.apache.kafka" % "kafka-clients" % kafkaStreamsVersion,
+  "org.apache.kafka" % "kafka-streams" % kafkaStreamsVersion,
+
+  "io.circe" %% "circe-core" % circeVersion,
+  "io.circe" %% "circe-generic" % circeVersion,
+  "io.circe" %% "circe-parser" % circeVersion,
 
   "org.xerial" % "sqlite-jdbc" % "3.21.0.1",
   "com.github.takezoe" %% "scala-jdbc" % "1.0.5"
