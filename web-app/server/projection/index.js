@@ -3,11 +3,8 @@ import {DynamoDB} from 'aws-sdk';
 const db = new DynamoDB({region: 'eu-west-1'});
 
 const params = {
-  ExpressionAttributeValues: {
-    ':tenant_id': {S: '1'},
-    ':deleted': {S: 'Deleted'}
-  },
-  KeyConditionExpression: 'tenant_id = :tenant_id AND invoice_status != :deleted',
+  ExpressionAttributeValues: {':v1': {S: '1'}},
+  KeyConditionExpression: 'tenant_id = :v1',
   TableName: 'invoices'
 };
 

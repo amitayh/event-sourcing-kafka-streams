@@ -1,8 +1,11 @@
 import uuidv4 from 'uuid/v4';
 import {Client, ConsumerGroup, HighLevelProducer} from 'kafka-node';
 
+const kafkaHost = process.env.KAFKA_HOST || 'localhost:9092';
+const connectionString = process.env.CONNECTION_STRING || 'localhost:2181';
+
 export const startConsumer = (topic, f) => {
-  const consumer = new ConsumerGroup({}, topic);
+  const consumer = new ConsumerGroup({kafkaHost}, topic);
   consumer.on('message', message => {
     try {
       const value = message.value;
@@ -15,7 +18,7 @@ export const startConsumer = (topic, f) => {
   });
 };
 
-const client = new Client();
+const client = new Client(connectionString);
 const commandsProducer = new HighLevelProducer(client);
 const commandsTopic = 'invoice-commands';
 
