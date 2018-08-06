@@ -5,14 +5,14 @@ import {Server} from 'http';
 //import io from 'socket.io';
 //import {startConsumer} from './server/kafka';
 //import {initCommandHandler} from './server/socket';
-//import api from './server/api';
+import api from './server/api';
 
 const app = express();
 const server = Server(app);
 //const socket = io(server);
 
 app.use(express.static('client/build'));
-//app.use('/api', api);
+app.use('/api', api);
 
 // WS
 //const commandHandler = initCommandHandler(socket);
