@@ -1,4 +1,4 @@
-import 'babel-core/register';
+//import 'babel-core/register';
 import 'babel-polyfill';
 import express from 'express';
 import {Server} from 'http';

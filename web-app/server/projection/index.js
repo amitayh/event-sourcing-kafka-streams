@@ -1,6 +1,24 @@
-import {db} from './db';
-import {reader} from './reader';
+import {DynamoDB} from 'aws-sdk';
 
-const read = reader(db);
+const db = new DynamoDB();
 
-export const getInvoices = () => read();
+const params = {
+  Key: {
+    'status': {
+      S: 'New'
+    },
+  },
+  TableName: 'invoices'
+};
+
+export const getInvoices = () => {
+  return new Promise((resolve, reject) => {
+    db.getItem(params, (err, data) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(data);
+      }
+    });
+  });
+};

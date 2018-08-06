@@ -4,7 +4,6 @@
   "description": "Frontend server for Kafka streams example",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "build-client": "cd client && npm run build && cd ..",
     "build": "rimraf dist/ && babel ./ --out-dir dist/ --ignore ./node_modules,./.babelrc,./npm-debug.log,./client/src,./client/public --copy-files",
     "start": "npm run build && node dist/index.js"
@@ -13,16 +12,15 @@
   "license": "MIT",
   "dependencies": {
     "aws-sdk": "^2.286.2",
-    "babel-core": "^6.26.0",
     "babel-polyfill": "^6.26.0",
     "body-parser": "^1.18.2",
     "express": "^4.16.3",
     "kafka-node": "^2.6.1",
     "socket.io": "^2.0.4",
-    "sqlite3": "^4.0.0",
     "uuid": "^3.2.1"
   },
   "devDependencies": {
+    "babel-core": "^6.26.0",
     "babel-cli": "^6.26.0",
     "babel-loader": "^7.1.4",
     "babel-preset-env": "^1.7.0",
