@@ -1,8 +1,8 @@
 import uuidv4 from 'uuid/v4';
-import {Client, ConsumerGroup, HighLevelProducer} from 'kafka-node';
+import {ConsumerGroup, HighLevelProducer, KafkaClient} from 'kafka-node';
 
 const kafkaHost = process.env.KAFKA_HOST || 'localhost:9092';
-const connectionString = process.env.CONNECTION_STRING || 'localhost:2181';
+//const connectionString = process.env.CONNECTION_STRING || 'localhost:2181';
 
 export const startConsumer = (topic, f) => {
   const consumer = new ConsumerGroup({kafkaHost}, topic);
@@ -18,12 +18,16 @@ export const startConsumer = (topic, f) => {
   });
 };
 
-const client = new Client(connectionString);
+console.log(`creating producer ${kafkaHost}...`);
+const client = new KafkaClient({kafkaHost});
 const commandsProducer = new HighLevelProducer(client);
 const commandsTopic = 'invoice-commands';
 
 commandsProducer.on('ready', () => {
   console.log('commands producer ready')
+});
+commandsProducer.on('error', err => {
+  console.error('error occurred', err);
 });
 
 export const executeCommand = (invoiceId, commandPayload) => {

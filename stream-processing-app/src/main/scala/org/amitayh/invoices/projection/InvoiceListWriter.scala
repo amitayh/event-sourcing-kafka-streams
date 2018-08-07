@@ -2,25 +2,24 @@ package org.amitayh.invoices.projection
 
 import java.util.UUID
 
-import com.github.takezoe.scala.jdbc._
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
+import com.amazonaws.services.dynamodbv2.model.AttributeValue
 
-class InvoiceListWriter(db: DB) {
+import scala.collection.JavaConverters._
 
-  def update(id: UUID, record: InvoiceRecord): Unit = db.transaction {
-    val idString = id.toString
-    db.update(sql"INSERT OR IGNORE INTO invoices (id) VALUES ($idString)")
-    db.update {
-      sql"""
-        UPDATE invoices
-        SET customer_name = ${record.customerName},
-          customer_email = ${record.customerEmail},
-          issue_date = ${record.issueDate},
-          due_date = ${record.dueDate},
-          total = ${record.total.toDouble},
-          status = ${record.status}
-        WHERE id = $idString
-      """
-    }
+class InvoiceListWriter(db: AmazonDynamoDB) {
+
+  def update(id: UUID, record: InvoiceRecord): Unit = {
+    db.putItem("invoices", Map(
+      "tenant_id" -> new AttributeValue("1"),
+      "invoice_id" -> new AttributeValue(id.toString),
+      "customer_name" -> new AttributeValue(record.customerName),
+      "customer_email" -> new AttributeValue(record.customerEmail),
+      "invoice_issue_date" -> new AttributeValue(record.issueDate),
+      "invoice_due_date" -> new AttributeValue(record.dueDate),
+      "invoice_status" -> new AttributeValue(record.status),
+      "invoice_total" -> new AttributeValue().withN(record.total.toString)
+    ).asJava)
   }
 
 }

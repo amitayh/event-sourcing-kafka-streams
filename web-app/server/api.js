@@ -12,11 +12,14 @@ app.get('/invoices', (req, res, next) => {
     .catch(err => next(err));
 });
 
-app.post('/execute', bodyParser.json(), async (req, res) => {
+app.post('/execute', bodyParser.json(), (req, res, next) => {
   const body = req.body;
-  const result = await executeCommand(body.invoiceId, body.command);
-  setSocketId(result.commandId, body.socketId);
-  res.json(result);
+  executeCommand(body.invoiceId, body.command)
+    .then(result => {
+      setSocketId(result.commandId, body.socketId);
+      res.json(result);
+    })
+    .catch(err => next(err));
 });
 
 export default app;

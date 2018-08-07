@@ -1,9 +1,8 @@
 package org.amitayh.invoices
 
-import java.sql.DriverManager
 import java.util.UUID
 
-import com.github.takezoe.scala.jdbc.DB
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import org.amitayh.invoices.JsonSerde._
 import org.amitayh.invoices.domain._
 import org.amitayh.invoices.projection.{InvoiceListWriter, InvoiceRecord}
@@ -19,7 +18,8 @@ object Projector extends App with StreamProcessor {
     val snapshots: KStream[UUID, Snapshot[Invoice]] = snapshotStream(builder)
     val records: KStream[UUID, InvoiceRecord] = recordStream(snapshots)
 
-    val writer = new InvoiceListWriter(connect())
+    val dynamoDB = AmazonDynamoDBClientBuilder.defaultClient()
+    val writer = new InvoiceListWriter(dynamoDB)
     records.foreach { (id: UUID, record: InvoiceRecord) =>
       writer.update(id, record)
     }
@@ -30,12 +30,6 @@ object Projector extends App with StreamProcessor {
   }
 
   start()
-
-  def connect(): DB = {
-    val file = sys.env("DB")
-    val url = s"jdbc:sqlite:$file"
-    DB(DriverManager.getConnection(url))
-  }
 
   def snapshotStream(builder: StreamsBuilder): KStream[UUID, Snapshot[Invoice]] = {
     builder.stream(Config.SnapshotsTopic, Consumed.`with`(UuidSerde, SnapshotSerde))

@@ -2,7 +2,6 @@ package org.amitayh.invoices
 
 import java.util.Properties
 
-import com.github.takezoe.scala.jdbc._
 import org.amitayh.invoices.Config.Topics
 import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig}
 
@@ -30,26 +29,6 @@ object Cleanup extends App {
   println(createResult)
   println("-")
 
-  println("Creating tables...")
-  val db = Projector.connect()
-  db.transaction {
-    db.update(sql"DROP TABLE IF EXISTS invoices")
-    db.update {
-      sql"""
-        CREATE TABLE invoices (
-          id             TEXT PRIMARY KEY,
-          customer_name  TEXT,
-          customer_email TEXT,
-          status         TEXT,
-          issue_date     TEXT,
-          due_date       TEXT,
-          total          REAL
-        );
-      """
-    }
-  }
-
   admin.close()
-  db.close()
 
 }

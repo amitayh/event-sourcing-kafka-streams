@@ -27,12 +27,12 @@ startConsumer('invoice-records', (id, record) => {
   socket.sockets.emit('invoice-updated', {...record, id});
 });
 
-// socket.on('connection', client => {
-//   console.log('a user connected');
-//   client.on('disconnect', () => {
-//     console.log('a user disconnected');
-//   });
-// });
+//socket.on('connection', client => {
+//  console.log('a user connected');
+//  client.on('disconnect', () => {
+//    // Clear socket
+//  });
+//});
 
 const port = process.env.PORT || 3001;
 server.listen(port, () => {
