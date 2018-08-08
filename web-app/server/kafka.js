@@ -1,32 +1,43 @@
 import uuidv4 from 'uuid/v4';
-import {ConsumerGroup, HighLevelProducer, KafkaClient} from 'kafka-node';
+import {KafkaConsumer, Producer} from 'node-rdkafka';
 
 const kafkaHost = process.env.KAFKA_HOST || 'localhost:9092';
 //const connectionString = process.env.CONNECTION_STRING || 'localhost:2181';
 
 export const startConsumer = (topic, f) => {
-  const consumer = new ConsumerGroup({kafkaHost}, topic);
-  consumer.on('message', message => {
-    try {
-      const value = message.value;
-      if (value !== '') {
-        f(message.key, JSON.parse(value));
+  const options = {
+    'group.id': `kafka-streams-demo-${topic}`,
+    'metadata.broker.list': kafkaHost
+  };
+  console.log(`creating consumer ${kafkaHost}/${topic}...`);
+  const consumer = new KafkaConsumer(options, {});
+  consumer.connect();
+  consumer
+    .on('ready', () => {
+      console.log(`${topic} consumer ready`);
+      consumer.subscribe([topic]);
+      consumer.consume();
+    })
+    .on('data', data => {
+      try {
+        const key = data.key.toString();
+        const value = data.value.toString();
+        f(key, JSON.parse(value));
+      } catch (e) {
+        console.warn(e.message, data);
       }
-    } catch (e) {
-      console.warn(e.message, message);
-    }
-  });
+    });
 };
 
 console.log(`creating producer ${kafkaHost}...`);
-const client = new KafkaClient({kafkaHost});
-const commandsProducer = new HighLevelProducer(client);
+const commandsProducer = new Producer({'metadata.broker.list': kafkaHost}, {});
 const commandsTopic = 'invoice-commands';
 
+commandsProducer.connect();
 commandsProducer.on('ready', () => {
   console.log('commands producer ready')
 });
-commandsProducer.on('error', err => {
+commandsProducer.on('event.error', err => {
   console.error('error occurred', err);
 });
 
@@ -36,18 +47,18 @@ export const executeCommand = (invoiceId, commandPayload) => {
     commandId: commandId,
     toEvents: commandPayload
   };
-  const payload = {
-    topic: commandsTopic,
-    messages: [JSON.stringify(command)],
-    key: invoiceId
-  };
   return new Promise((resolve, reject) => {
-    commandsProducer.send([payload], err => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve({commandId, invoiceId: invoiceId});
-      }
-    });
+    const result = commandsProducer.produce(
+      commandsTopic,
+      null,
+      new Buffer(JSON.stringify(command)),
+      invoiceId,
+      Date.now()
+    );
+    if (result === true) {
+      resolve({commandId, invoiceId: invoiceId})
+    } else {
+      reject(result);
+    }
   });
 };
