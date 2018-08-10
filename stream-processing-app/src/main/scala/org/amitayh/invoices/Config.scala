@@ -31,6 +31,7 @@ object Config {
   val SnapshotsStore = "snapshots-store"
   val CommandsGroupId = "invoice-commands-processor"
   val ProjectorGroupId = "invoice-projections"
+  val UpdateSnapshotsProcessor = "update-snapshots-processor"
   val BootstrapServers = sys.env("BOOTSTRAP_SERVERS")
 
   def topic(name: String, configs: (String, String)*): NewTopic =

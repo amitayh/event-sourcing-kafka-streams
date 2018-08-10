@@ -3,10 +3,11 @@ package org.amitayh.invoices
 import java.util.{Collections, UUID}
 
 import org.amitayh.invoices.JsonSerde._
-import org.amitayh.invoices.domain._
+import org.amitayh.invoices.domain.{InvoiceEvent, _}
 import org.apache.kafka.common.utils.Bytes
 import org.apache.kafka.streams._
 import org.apache.kafka.streams.kstream._
+import org.apache.kafka.streams.processor.{AbstractProcessor, ProcessorContext, ProcessorSupplier}
 import org.apache.kafka.streams.state._
 
 import scala.collection.JavaConverters._
@@ -15,7 +16,36 @@ object CommandHandler extends App with StreamProcessor {
 
   lazy val reducer = new SnapshotReducer(InvoiceReducer)
 
-  lazy val store = getStore[UUID, Snapshot[Invoice]](Config.SnapshotsStore)
+  val updateSnapshot = new AbstractProcessor[UUID, CommandExecutionResult] {
+    private var store: KeyValueStore[UUID, Snapshot[Invoice]] = _
+
+    override def init(context: ProcessorContext): Unit = {
+      store = context
+        .getStateStore(Config.SnapshotsStore)
+        .asInstanceOf[KeyValueStore[UUID, Snapshot[Invoice]]]
+    }
+
+    override def process(key: UUID, value: CommandExecutionResult): Unit = {
+      println(key, value)
+      value match {
+        case CommandSucceeded(_, invoiceEvents) =>
+          val snapshot = load(key)
+          val updated = invoiceEvents.foldLeft(snapshot) { (acc, event) =>
+            reducer.aggregator.apply(key, event, acc)
+          }
+          println("BEFORE", snapshot)
+          println("AFTER", updated)
+          store.put(key, updated)
+
+        case _ => ()
+      }
+    }
+
+    override def close(): Unit = store.close()
+
+    def load(id: UUID): Snapshot[Invoice] =
+      Option(store.get(id)).getOrElse(reducer.initializer())
+  }
 
   override def appId: String = Config.CommandsGroupId
 
@@ -26,9 +56,11 @@ object CommandHandler extends App with StreamProcessor {
     val results: KStream[UUID, CommandExecutionResult] = executeCommands(commands)
     val events: KStream[UUID, InvoiceEvent] = eventsStream(results)
 
+    val processorSupplier: ProcessorSupplier[UUID, CommandExecutionResult] = () => updateSnapshot
+    results.process(processorSupplier, Config.SnapshotsStore)
+    results.to(Config.CommandResultTopic, Produced.`with`(UuidSerde, CommandResultSerde))
     snapshots.toStream.to(Config.SnapshotsTopic, Produced.`with`(UuidSerde, SnapshotSerde))
     events.to(Config.EventsTopic, Produced.`with`(UuidSerde, EventSerde))
-    results.to(Config.CommandResultTopic, Produced.`with`(UuidSerde, CommandResultSerde))
 
     builder.build()
   }
@@ -37,13 +69,10 @@ object CommandHandler extends App with StreamProcessor {
 
   def executeCommands(commands: KStream[UUID, EventSourcedCommand]): KStream[UUID, CommandExecutionResult] = {
     commands.map { (id: UUID, command: EventSourcedCommand) =>
-      val snapshot = loadSnapshot(id)
+      val snapshot = updateSnapshot.load(id)
       KeyValue.pair(id, command(snapshot))
     }
   }
-
-  def loadSnapshot(id: UUID): Snapshot[Invoice] =
-    Option(store.get(id)).getOrElse(reducer.initializer())
 
   def snapshotsTable(builder: StreamsBuilder): KTable[UUID, Snapshot[Invoice]] = {
     val materialized: Materialized[UUID, Snapshot[Invoice], KeyValueStore[Bytes, Array[Byte]]] =

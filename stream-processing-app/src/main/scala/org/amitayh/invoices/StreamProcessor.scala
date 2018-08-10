@@ -5,7 +5,6 @@ import java.util.concurrent.CountDownLatch
 
 import org.apache.kafka.streams.KafkaStreams.State
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor
-import org.apache.kafka.streams.state.{QueryableStoreType, QueryableStoreTypes, ReadOnlyKeyValueStore}
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig, Topology}
 
 trait StreamProcessor {
@@ -33,13 +32,6 @@ trait StreamProcessor {
     e.printStackTrace()
     latch.countDown()
   })
-
-  def getStore[K, V](storeName: String): ReadOnlyKeyValueStore[K, V] = {
-    val storeType: QueryableStoreType[ReadOnlyKeyValueStore[K, V]] =
-      QueryableStoreTypes.keyValueStore()
-
-    streams.store(storeName, storeType)
-  }
 
   def start(): Unit = {
     println("Starting...")

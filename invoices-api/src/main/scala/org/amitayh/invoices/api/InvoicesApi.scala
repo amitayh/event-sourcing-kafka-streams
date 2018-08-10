@@ -8,6 +8,8 @@ import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.{EntityDecoder, HttpService}
 
+import scala.language.higherKinds
+
 class InvoicesApi[F[_]: Effect] extends Http4sDsl[F] {
 
   val listInvoices: F[List[String]] =

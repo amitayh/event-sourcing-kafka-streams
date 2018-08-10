@@ -24,7 +24,8 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-parser" % circeVersion,
 
   "com.amazonaws" % "aws-java-sdk-bom" % awsSdkVersion pomOnly(),
-  "com.amazonaws" % "aws-java-sdk-dynamodb" % awsSdkVersion
+  "com.amazonaws" % "aws-java-sdk-dynamodb" % awsSdkVersion,
+  "com.pusher" % "pusher-http-java" % "1.0.0"
 
 //  "org.xerial" % "sqlite-jdbc" % "3.21.0.1",
 //  "com.github.takezoe" %% "scala-jdbc" % "1.0.5"
