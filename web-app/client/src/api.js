@@ -1,18 +1,25 @@
-import {socket} from './socket';
+import {originId} from './origin';
+import uuidv4 from 'uuid/v4';
 
+const baseUrl = 'http://localhost:8080/api';
 const toJson = res => res.json();
 
-const execute = (invoiceId, command) => {
+const execute = (invoiceId, payload) => {
   const options = {
     method: 'POST',
     headers: {'content-type': 'application/json'},
-    body: JSON.stringify({socketId: socket.id, invoiceId, command})
+    body: JSON.stringify({
+      originId,
+      commandId: uuidv4(),
+      expectedVersion: null,
+      payload
+    })
   };
-  return fetch('/api/execute', options).then(toJson);
+  return fetch(`${baseUrl}/execute/${invoiceId}`, options).then(toJson);
 };
 
 export const fetchInvoices = () => {
-  return fetch('/api/invoices').then(toJson);
+  return fetch(`${baseUrl}/invoices`).then(toJson);
 };
 
 export const createInvoice = (invoiceId, draft) => {
@@ -35,6 +42,6 @@ export const deleteInvoice = invoiceId => {
   return execute(invoiceId, {DeleteInvoice: {}});
 };
 
-export const removeLineItem = (invoiceId, lineItemId) => {
-  return execute(invoiceId, {RemoveLineItem: {lineItemId}});
+export const removeLineItem = (invoiceId, index) => {
+  return execute(invoiceId, {RemoveLineItem: {index}});
 };

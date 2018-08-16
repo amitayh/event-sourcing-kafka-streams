@@ -1,20 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import registerServiceWorker from './registerServiceWorker';
-import {socket} from './socket';
 import {initialState} from './model';
-import {commandExecutionFailed, commandExecutionSucceeded, fetchInvoices, invoiceUpdated} from './actions';
+import {subscribe} from './pusher';
+import {originId} from './origin';
 import App from './components/App';
-
-socket.on('command-succeeded', commandId => {
-  dispatch(commandExecutionSucceeded(commandId));
-});
-socket.on('command-failed', command => {
-  dispatch(commandExecutionFailed(command.commandId, command.cause));
-});
-socket.on('invoice-updated', invoice => {
-  dispatch(invoiceUpdated(invoice));
-});
 
 ReactDOM.render(<App />, document.getElementById('root'));
 registerServiceWorker();
@@ -43,4 +33,5 @@ function dispatch(action) {
 }
 
 render(); // Initial render
-dispatch(fetchInvoices);
+subscribe(dispatch, originId);
+//dispatch(fetchInvoices);

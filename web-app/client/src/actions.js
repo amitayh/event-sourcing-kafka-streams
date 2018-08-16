@@ -161,11 +161,11 @@ export const deleteInvoice = id => ({
   }
 });
 
-export const removeLineItem = (invoiceId, lineItemId) => ({
+export const removeLineItem = (invoiceId, index) => ({
   type: 'REMOVE_LINE_ITEM',
   nextState: state => state,
   runEffect: dispatch => {
     dispatch(commandExecutionStarted);
-    api.removeLineItem(invoiceId, lineItemId);
+    api.removeLineItem(invoiceId, index);
   }
 });
