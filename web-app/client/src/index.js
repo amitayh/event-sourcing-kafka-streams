@@ -4,6 +4,7 @@ import registerServiceWorker from './registerServiceWorker';
 import {initialState} from './model';
 import {subscribe} from './pusher';
 import {originId} from './origin';
+import {fetchInvoices} from './actions';
 import App from './components/App';
 
 ReactDOM.render(<App />, document.getElementById('root'));
@@ -34,4 +35,4 @@ function dispatch(action) {
 
 render(); // Initial render
 subscribe(dispatch, originId);
-//dispatch(fetchInvoices);
+dispatch(fetchInvoices);
