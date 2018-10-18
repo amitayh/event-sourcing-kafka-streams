@@ -7,8 +7,8 @@ import java.util
 import java.util.UUID
 
 import com.sksamuel.avro4s._
-import UuidConverters.{fromByteBuffer, toByteBuffer}
 import org.amitayh.invoices.common.domain._
+import org.amitayh.invoices.common.serde.UuidConverters.{fromByteBuffer, toByteBuffer}
 import org.apache.avro.Schema
 import org.apache.avro.Schema.Field
 import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}

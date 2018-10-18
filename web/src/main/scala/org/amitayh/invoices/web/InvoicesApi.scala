@@ -1,8 +1,6 @@
 package org.amitayh.invoices.web
 
-import java.util.UUID
-
-import cats.effect.Effect
+import cats.effect.Sync
 import cats.implicits._
 import io.circe._
 import io.circe.generic.auto._
@@ -14,9 +12,7 @@ import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.{EntityDecoder, HttpService}
 
-import scala.util.Try
-
-class InvoicesApi[F[_]: Effect: InvoiceList: Kafka] extends Http4sDsl[F] {
+class InvoicesApi[F[_]: Sync: InvoiceList: Producer] extends Http4sDsl[F] {
 
   implicit val commandEntityDecoder: EntityDecoder[F, Command] = jsonOf[F, Command]
 
@@ -27,13 +23,13 @@ class InvoicesApi[F[_]: Effect: InvoiceList: Kafka] extends Http4sDsl[F] {
     case request @ POST -> Root / "execute" / UuidVar(invoiceId) =>
       request
         .as[Command]
-        .flatMap(Kafka[F].produce(invoiceId, _))
+        .flatMap(Producer[F].produce(invoiceId, _))
         .flatMap(metaData => Ok(Json.fromLong(metaData.timestamp)))
   }
 
 }
 
-object UuidVar {
-  def unapply(arg: String): Option[UUID] =
-    Try(UUID.fromString(arg)).toOption
+object InvoicesApi {
+  def apply[F[_]: Sync: InvoiceList: Producer]: InvoicesApi[F] =
+    new InvoicesApi[F]
 }

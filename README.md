@@ -1,23 +1,14 @@
-# sbt-multi-project-example
+# Invoices - Kafka Streams
 
-The goal of this example is to provide a multi-project build using `sbt` providing:
-* A single `build.sbt` file which allows for centralized configuration, dependency and build management
-* Each sub-project contains only its source code
-* Sub-projects can depend on other sub-projects
-* Only *deliverable* sub-projects produce a *fat-jar* using [sbt-assembly](https://github.com/sbt/sbt-assembly)
+```
+brew services start mysql
 
-# Example structure
-* sbt-multi-project-example/
-    * common/
-        * src/
-        * test/
-    * multi1/
-        * src/
-        * test/
-    * multi2/
-        * src/
-        * test/
-    * project/
-        * build.properties
-        * plugins.sbt
-    * build.sbt
+~/dev/personal/kafka_2.12-2.0.0
+bin/zookeeper-server-start.sh config/zookeeper.properties
+bin/kafka-server-start.sh config/server.properties
+
+~/dev/personal/invoices-kafka-streams
+BOOTSTRAP_SERVERS=localhost:9092 java -jar commandhandler/target/scala-2.12/commandhandler.jar
+BOOTSTRAP_SERVERS=localhost:9092 DB_DRIVER=com.mysql.cj.jdbc.Driver DB_URL="jdbc:mysql://localhost/invoices?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC" DB_USER=root DB_PASS="" java -jar listprojector/target/scala-2.12/listprojector.jar
+BOOTSTRAP_SERVERS=localhost:9092 DB_DRIVER=com.mysql.cj.jdbc.Driver DB_URL="jdbc:mysql://localhost/invoices?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC" DB_USER=root DB_PASS="" java -jar web/target/scala-2.12/web.jar
+```
