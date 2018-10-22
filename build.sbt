@@ -76,7 +76,6 @@ lazy val web = project
       dependencies.http4sBlaze,
       dependencies.http4sCirce,
       dependencies.http4sDsl,
-      dependencies.http4sWebsocket,
       dependencies.circeCore,
       dependencies.circeGeneric,
       dependencies.circeParser,
@@ -94,7 +93,6 @@ lazy val dependencies =
     val slf4jVersion            = "1.7.25"
     val log4sVersion            = "1.6.1"
     val http4sVersion           = "0.18.20"
-    val http4sWebsocketVersion  = "0.2.1"
     val circeVersion            = "0.10.0"
     val doobieVersion           = "0.5.3"
     val kafkaVersion            = "2.0.0"
@@ -110,7 +108,6 @@ lazy val dependencies =
     val http4sBlaze     = "org.http4s"            %% "http4s-blaze-server"  % http4sVersion
     val http4sCirce     = "org.http4s"            %% "http4s-circe"         % http4sVersion
     val http4sDsl       = "org.http4s"            %% "http4s-dsl"           % http4sVersion
-    val http4sWebsocket = "org.http4s"            %% "http4s-websocket"     % http4sWebsocketVersion
     val circeCore       = "io.circe"              %% "circe-core"           % circeVersion
     val circeGeneric    = "io.circe"              %% "circe-generic"        % circeVersion
     val circeParser     = "io.circe"              %% "circe-parser"         % circeVersion

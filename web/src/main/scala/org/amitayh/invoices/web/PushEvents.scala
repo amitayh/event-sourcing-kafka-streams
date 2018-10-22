@@ -3,60 +3,54 @@ package org.amitayh.invoices.web
 import java.util.UUID
 
 import cats.effect._
-import fs2.Sink
 import fs2.async.mutable.Topic
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.amitayh.invoices.common.domain.{CommandResult, InvoiceSnapshot}
 import org.amitayh.invoices.dao.InvoiceRecord
-import org.amitayh.invoices.web.Websocket._
-import org.http4s.HttpService
+import org.amitayh.invoices.web.PushEvents._
 import org.http4s.dsl.Http4sDsl
-import org.http4s.server.websocket._
-import org.http4s.websocket.WebsocketBits.{Text, WebSocketFrame}
+import org.http4s.{HttpService, ServerSentEvent}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class Websocket[F[_]: Effect] extends Http4sDsl[F] {
+class PushEvents[F[_]: Effect] extends Http4sDsl[F] {
 
   private val maxQueued = 16
-
-  private val ignore: Sink[F, WebSocketFrame] = _.map(_ => ())
 
   def service(commandResultsTopic: Topic[F, CommandResultRecord],
               invoiceUpdatesTopic: Topic[F, InvoiceSnapshotRecord]): HttpService[F] = HttpService[F] {
     case GET -> Root / UuidVar(originId) =>
       val commandResults = commandResultsTopic.subscribe(maxQueued).collect {
         case Some((_, result)) if result.originId == originId =>
-          WebsocketMessage(result).asFrame
+          Event(result).asServerSentEvent
       }
       val invoiceUpdates = invoiceUpdatesTopic.subscribe(maxQueued).collect {
-        case Some((id, snapshot)) => WebsocketMessage(id, snapshot).asFrame
+        case Some((id, snapshot)) => Event(id, snapshot).asServerSentEvent
       }
-      WebSocketBuilder[F].build(
-        send = commandResults merge invoiceUpdates,
-        receive = ignore)
+      Ok(commandResults merge invoiceUpdates)
   }
 
 }
 
-object Websocket {
+object PushEvents {
   type CommandResultRecord = Option[(UUID, CommandResult)]
   type InvoiceSnapshotRecord = Option[(UUID, InvoiceSnapshot)]
 
-  def apply[F[_]: Effect]: Websocket[F] = new Websocket[F]
+  def apply[F[_]: Effect]: PushEvents[F] = new PushEvents[F]
 }
 
-sealed trait WebsocketMessage {
-  def asFrame: WebSocketFrame = Text(this.asJson.noSpaces)
+sealed trait Event {
+  def asServerSentEvent: ServerSentEvent =
+    ServerSentEvent(this.asJson.noSpaces)
 }
 
-case class CommandSucceeded(commandId: UUID) extends WebsocketMessage
-case class CommandFailed(commandId: UUID, cause: String) extends WebsocketMessage
-case class InvoiceUpdated(record: InvoiceRecord) extends WebsocketMessage
+case class CommandSucceeded(commandId: UUID) extends Event
+case class CommandFailed(commandId: UUID, cause: String) extends Event
+case class InvoiceUpdated(record: InvoiceRecord) extends Event
 
-object WebsocketMessage {
-  def apply(result: CommandResult): WebsocketMessage = result match {
+object Event {
+  def apply(result: CommandResult): Event = result match {
     case CommandResult(_, commandId, _: CommandResult.Success) =>
       CommandSucceeded(commandId)
 
@@ -64,6 +58,6 @@ object WebsocketMessage {
       CommandFailed(commandId, cause.message)
   }
 
-  def apply(id: UUID, snapshot: InvoiceSnapshot): WebsocketMessage =
+  def apply(id: UUID, snapshot: InvoiceSnapshot): Event =
     InvoiceUpdated(InvoiceRecord(id, snapshot))
 }

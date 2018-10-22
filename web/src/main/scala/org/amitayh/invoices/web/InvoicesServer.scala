@@ -7,7 +7,7 @@ import fs2.{Stream, StreamApp}
 import org.amitayh.invoices.common.Config.Topics
 import org.amitayh.invoices.common.serde.AvroSerde.{CommandResultSerde, SnapshotSerde}
 import org.amitayh.invoices.common.serde.UuidSerde
-import org.amitayh.invoices.web.Websocket._
+import org.amitayh.invoices.web.PushEvents._
 import org.http4s.server.blaze.BlazeBuilder
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -44,10 +44,9 @@ object InvoicesServer extends StreamApp[IO] {
                          invoiceUpdatesTopic: Topic[IO, InvoiceSnapshotRecord]): Stream[IO, ExitCode] =
     BlazeBuilder[IO]
       .bindHttp(8080, "0.0.0.0")
-      .mountService(Statics[IO].service, "/")
       .mountService(InvoicesApi[IO].service, "/api")
-      .mountService(Websocket[IO].service(commandResultsTopic, invoiceUpdatesTopic), "/ws")
-      .withWebSockets(true)
+      .mountService(PushEvents[IO].service(commandResultsTopic, invoiceUpdatesTopic), "/events")
+      .mountService(Statics[IO].service, "/")
       .serve
 
 }

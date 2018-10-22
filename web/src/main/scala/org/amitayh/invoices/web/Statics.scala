@@ -9,7 +9,10 @@ class Statics[F[_]: Sync] extends Http4sDsl[F] {
   val service: HttpService[F] = HttpService[F] {
     case request @ GET -> fileName =>
       StaticFile
-        .fromResource(s"/statics/$fileName", Some(request))
+        .fromResource(
+          name = s"/statics$fileName",
+          req = Some(request),
+          preferGzipped = true)
         .getOrElseF(NotFound())
   }
 
