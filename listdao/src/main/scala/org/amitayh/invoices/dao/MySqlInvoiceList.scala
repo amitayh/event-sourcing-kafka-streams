@@ -27,7 +27,7 @@ object MySqlInvoiceList {
     val sql = sql"""
       SELECT id, version, updated_at, customer_name, customer_email, issue_date, due_date, total, status
       FROM invoices
-      WHERE status != 'Deleted'
+      WHERE status IN ('New', 'Paid')
       ORDER BY created_at DESC
     """
     sql.query[InvoiceRecord].to[List]

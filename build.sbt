@@ -80,6 +80,7 @@ lazy val web = project
       dependencies.circeGeneric,
       dependencies.circeParser,
       dependencies.kafkaClients,
+      dependencies.catsRetry,
       dependencies.mysqlConnector % Runtime
     )
   )
@@ -98,6 +99,7 @@ lazy val dependencies =
     val kafkaVersion            = "2.0.0"
     val mysqlConnectorVersion   = "8.0.12"
     val avro4sVersion           = "1.9.0"
+    val catsRetryVersion        = "0.2.0"
 
     val logback         = "ch.qos.logback"        % "logback-classic"       % logbackVersion
     val slf4j           = "org.slf4j"             % "jcl-over-slf4j"        % slf4jVersion
@@ -114,6 +116,7 @@ lazy val dependencies =
     val doobie          = "org.tpolecat"          %% "doobie-core"          % doobieVersion
     val doobieHikari    = "org.tpolecat"          %% "doobie-hikari"        % doobieVersion
     val avro4s          = "com.sksamuel.avro4s"   %% "avro4s-core"          % avro4sVersion
+    val catsRetry       = "com.github.cb372"      %% "cats-retry-core"      % catsRetryVersion
   }
 
 lazy val commonDependencies = Seq(

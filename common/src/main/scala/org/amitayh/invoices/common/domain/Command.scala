@@ -8,12 +8,12 @@ import scala.collection.immutable.Seq
 case class Command(originId: UUID,
                    commandId: UUID,
                    expectedVersion: Option[Int],
-                   payload: Command.Payload) extends ((Instant, InvoiceSnapshot) => CommandResult) {
+                   payload: Command.Payload) {
 
-  override def apply(timestamp: Instant, snapshot: InvoiceSnapshot): CommandResult = {
+  def apply(timestamp: Instant, snapshot: InvoiceSnapshot): CommandResult = {
     val outcome = snapshot
       .validateVersion(expectedVersion)
-      .flatMap(payload)
+      .flatMap(payload(_))
       .fold(
         CommandResult.Failure,
         success(timestamp, snapshot, _))
@@ -34,7 +34,9 @@ case class Command(originId: UUID,
 object Command {
   type Result = Either[InvoiceError, Seq[Event.Payload]]
 
-  sealed trait Payload extends (Invoice => Result)
+  sealed trait Payload {
+    def apply(invoice: Invoice): Result
+  }
 
   case class CreateInvoice(customerName: String,
                            customerEmail: String,

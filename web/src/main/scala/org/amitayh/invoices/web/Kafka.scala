@@ -2,9 +2,10 @@ package org.amitayh.invoices.web
 
 import java.time.Duration
 import java.util.Collections.singletonList
-import java.util.{Properties, UUID}
+import java.util.{ConcurrentModificationException, Properties, UUID}
 
 import cats.effect.IO
+import cats.syntax.monoid._
 import fs2._
 import org.amitayh.invoices.common.Config
 import org.amitayh.invoices.common.Config.Topics.Topic
@@ -13,8 +14,13 @@ import org.amitayh.invoices.common.serde.{CommandSerializer, UuidSerializer}
 import org.apache.kafka.clients.consumer._
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord, RecordMetadata}
 import org.apache.kafka.common.serialization.Deserializer
+import org.log4s.{Logger, getLogger}
+import retry.RetryPolicies._
+import retry._
 
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 trait Producer[F[_]] {
   def produce(invoiceId: UUID, command: Command): F[RecordMetadata]
@@ -27,9 +33,7 @@ object Producer {
     private val producer: KafkaProducer[UUID, Command] = {
       val props = new Properties
       props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, Config.BootstrapServers)
-      props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[UuidSerializer])
-      props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[CommandSerializer])
-      new KafkaProducer[UUID, Command](props)
+      new KafkaProducer[UUID, Command](props, UuidSerializer, CommandSerializer)
     }
 
     override def produce(invoiceId: UUID, command: Command): IO[RecordMetadata] = IO.async { cb =>
@@ -50,11 +54,14 @@ trait Consumer[F[_]] {
 }
 
 object Consumer {
+  private val logger: Logger = getLogger
+
+  implicit private val sleepIO: Sleep[IO] =
+    (delay: FiniteDuration) => IO.sleep(delay)
+
   def apply[F[_]](implicit F: Consumer[F]): Consumer[F] = F
 
   implicit val consumerIO: Consumer[IO] = new Consumer[IO] {
-    private val pollTimeout = Duration.ofSeconds(1)
-
     override def subscribe[K, V](topic: Topic,
                                  groupId: String,
                                  keyDeserializer: Deserializer[K],
@@ -76,6 +83,13 @@ object Consumer {
     } yield record.key -> record.value
 
     private def close(consumer: KafkaConsumer[_, _]): IO[Unit] =
-      IO(consumer.close())
+      retryingOnSomeErrors(
+        policy = constantDelay[IO](1.second) |+| limitRetries[IO](10),
+        isWorthRetrying = (_: Throwable).isInstanceOf[ConcurrentModificationException],
+        onError = (_: Throwable, _: RetryDetails) => logWaiting)(IO(consumer.close()))
+
+    private val logWaiting = IO(logger.info("Waiting for consumer to close"))
+
+    private val pollTimeout = Duration.ofSeconds(1)
   }
 }

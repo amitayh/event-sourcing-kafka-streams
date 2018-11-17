@@ -24,6 +24,13 @@ class CommandToResultTransformer
       .asInstanceOf[KeyValueStore[UUID, InvoiceSnapshot]]
   }
 
+  /**
+    * By using the invoice ID as the partition key for the commands topic,
+    * we get serializability over command handling. This means that no
+    * concurrent commands will run for the same invoice, so we can safely
+    * handle commands as read-process-write without a race condition. We
+    * are still able to scale out by adding more partitions.
+    */
   override def transform(id: UUID, command: Command): KeyValue[UUID, CommandResult] = {
     val snapshot = loadSnapshot(id)
     val result = command(timestamp(), snapshot)

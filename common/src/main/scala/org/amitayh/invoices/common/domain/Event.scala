@@ -9,8 +9,8 @@ case class Event(version: Int,
                  payload: Event.Payload)
 
 object Event {
-  sealed trait Payload extends (Invoice => Invoice) {
-    override def apply(invoice: Invoice): Invoice = invoice
+  sealed trait Payload {
+    def apply(invoice: Invoice): Invoice = invoice
   }
 
   case class InvoiceCreated(customerName: String,

@@ -24,7 +24,7 @@ class InvoicesApi[F[_]: Sync: InvoiceList: Producer] extends Http4sDsl[F] {
       request
         .as[Command]
         .flatMap(Producer[F].produce(invoiceId, _))
-        .flatMap(metaData => Ok(Json.fromLong(metaData.timestamp)))
+        .flatMap(metaData => Accepted(Json.fromLong(metaData.timestamp)))
   }
 
 }
