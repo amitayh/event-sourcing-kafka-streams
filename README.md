@@ -27,23 +27,25 @@ as a backbone for an event sourced system.
    $ bin/setup.sh config/local.properties
    ```
 
-### Running the [command handler](commandhandler/src/main/scala/org/amitayh/invoices/commandhandler/CommandHandler.scala)
+### Running
 
-```
-$ bin/commandhandler.sh config/local.properties
-```
+1. Run the [command handler](commandhandler/src/main/scala/org/amitayh/invoices/commandhandler/CommandHandler.scala):
 
-### Running the [invoices list projector](listprojector/src/main/scala/org/amitayh/invoices/projector/ListProjector.scala)
+   ```
+   $ bin/commandhandler.sh config/local.properties
+   ```
 
-```
-$ bin/commandhandler.sh config/local.properties
-```
+2. Run the [invoices list projector](listprojector/src/main/scala/org/amitayh/invoices/projector/ListProjector.scala):
 
-### Running the [web server](web/src/main/scala/org/amitayh/invoices/web/InvoicesServer.scala)
+   ```
+   $ bin/commandhandler.sh config/local.properties
+   ```
 
-```
-$ bin/web.sh config/local.properties
-```
+3. Run the [web server](web/src/main/scala/org/amitayh/invoices/web/InvoicesServer.scala):
+
+   ```
+   $ bin/web.sh config/local.properties
+   ```
 
 If everything worked, you should be able to see the app running at `http://localhost:8080/index.html`
 
