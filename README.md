@@ -38,7 +38,7 @@ as a backbone for an event sourced system.
 2. Run the [invoices list projector](listprojector/src/main/scala/org/amitayh/invoices/projector/ListProjector.scala):
 
    ```
-   $ bin/commandhandler.sh config/local.properties
+   $ bin/projector.sh config/local.properties
    ```
 
 3. Run the [web server](web/src/main/scala/org/amitayh/invoices/web/InvoicesServer.scala):
