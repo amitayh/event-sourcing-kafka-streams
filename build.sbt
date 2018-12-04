@@ -19,6 +19,7 @@ lazy val common = project
   .settings(
     name := "common",
     commonSettings,
+    assemblySettings,
     libraryDependencies ++= commonDependencies ++ Seq(
       dependencies.log4s,
       dependencies.kafkaClients,
@@ -100,6 +101,8 @@ lazy val dependencies =
     val mysqlConnectorVersion   = "8.0.12"
     val avro4sVersion           = "1.9.0"
     val catsRetryVersion        = "0.2.0"
+    val origamiVersion          = "5.0.1"
+    val producerVersion         = "5.0.0"
 
     val logback         = "ch.qos.logback"        % "logback-classic"       % logbackVersion
     val slf4j           = "org.slf4j"             % "jcl-over-slf4j"        % slf4jVersion
