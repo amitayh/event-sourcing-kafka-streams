@@ -44,7 +44,7 @@ object InvoicesServer extends StreamApp[IO] {
                          invoiceUpdatesTopic: Topic[IO, InvoiceSnapshotRecord]): Stream[IO, ExitCode] =
     BlazeBuilder[IO]
       .bindHttp(8080, "0.0.0.0")
-      .mountService(InvoicesApi[IO].service, "/api")
+      .mountService(InvoicesApi[IO].service(commandResultsTopic), "/api")
       .mountService(PushEvents[IO].service(commandResultsTopic, invoiceUpdatesTopic), "/events")
       .mountService(Statics[IO].service, "/")
       .serve
