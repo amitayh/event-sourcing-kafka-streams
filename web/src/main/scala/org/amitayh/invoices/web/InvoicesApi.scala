@@ -21,26 +21,27 @@ import org.http4s.{EntityDecoder, HttpService, Response}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-class InvoicesApi[F[_]: Timer: Effect: InvoiceList: Producer] extends Http4sDsl[F] {
+class InvoicesApi[F[_]: Timer: Effect: InvoiceList] extends Http4sDsl[F] {
 
   private val maxQueued = 16
 
   implicit val commandEntityDecoder: EntityDecoder[F, Command] = jsonOf[F, Command]
 
-  def service(commandResultsTopic: Topic[F, CommandResultRecord]): HttpService[F] = HttpService[F] {
+  def service(producer: Kafka.Producer[F, UUID, Command],
+              commandResultsTopic: Topic[F, CommandResultRecord]): HttpService[F] = HttpService[F] {
     case GET -> Root / "invoices" =>
       InvoiceList[F].get.flatMap(invoices => Ok(invoices.asJson))
 
     case request @ POST -> Root / "execute" / "async" / UuidVar(invoiceId) =>
       request
         .as[Command]
-        .flatMap(Producer[F].produce(invoiceId, _))
+        .flatMap(producer.send(invoiceId, _))
         .flatMap(metaData => Accepted(Json.fromLong(metaData.timestamp)))
 
     case request @ POST -> Root / "execute" / UuidVar(invoiceId) =>
       request.as[Command].flatMap { command =>
         val response = resultStream(commandResultsTopic, command.commandId) merge timeoutStream
-        Producer[F].produce(invoiceId, command) *> response.head.compile.toList.map(_.head)
+        producer.send(invoiceId, command) *> response.head.compile.toList.map(_.head)
       }
   }
 
@@ -59,6 +60,6 @@ class InvoicesApi[F[_]: Timer: Effect: InvoiceList: Producer] extends Http4sDsl[
 }
 
 object InvoicesApi {
-  def apply[F[_]: Timer: Effect: InvoiceList: Producer]: InvoicesApi[F] =
+  def apply[F[_]: Timer: Effect: InvoiceList]: InvoicesApi[F] =
     new InvoicesApi[F]
 }
