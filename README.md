@@ -5,7 +5,36 @@ as a backbone for an event sourced system.
 
 ## Running the project locally
 
-### Setup
+You can either run the project with [Docker Compose](https://docs.docker.com/compose/),
+or run everything on your host.
+
+### Prerequisites
+
+1. Install sbt ([help](https://www.scala-sbt.org/))
+
+2. Build the project:
+
+   ```
+   $ sbt assembly
+   ```
+
+### Run with Docker Compose
+
+1. Build images
+
+   ```
+   $ docker-compose build
+   ```
+
+2. Start the containers
+
+   ```
+   $ docker-compose up
+   ```
+
+### Run on host
+
+#### Setup
 
 1. Run Zookeeper / Kafka ([help](https://kafka.apache.org/quickstart))
 
@@ -13,21 +42,13 @@ as a backbone for an event sourced system.
 
 3. Install the [schema](listdao/src/main/resources/schema.sql)
 
-4. Install sbt ([help](https://www.scala-sbt.org/))
-
-5. Build the project:
-
-   ```
-   $ sbt assembly
-   ```
-
-6. Create the topics (edit `config/local.properties` as needed):
+4. Create the topics (edit `config/local.properties` as needed):
 
    ```
    $ bin/setup.sh config/local.properties
    ```
 
-### Running
+#### Running
 
 1. Run the [command handler](commandhandler/src/main/scala/org/amitayh/invoices/commandhandler/CommandHandler.scala):
 

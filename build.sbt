@@ -94,9 +94,9 @@ lazy val dependencies =
     val logbackVersion          = "1.2.3"
     val slf4jVersion            = "1.7.25"
     val log4sVersion            = "1.6.1"
-    val http4sVersion           = "0.18.20"
+    val http4sVersion           = "0.20.0-M7"
     val circeVersion            = "0.10.0"
-    val doobieVersion           = "0.5.3"
+    val doobieVersion           = "0.6.0"
     val kafkaVersion            = "2.0.0"
     val mysqlConnectorVersion   = "8.0.12"
     val avro4sVersion           = "1.9.0"
@@ -136,6 +136,7 @@ lazy val compilerOptions = Seq(
   "-language:higherKinds",
   "-language:implicitConversions",
   "-language:postfixOps",
+  "-Ypartial-unification",
   "-deprecation",
   "-encoding",
   "utf8"

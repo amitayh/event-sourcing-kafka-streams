@@ -2,10 +2,10 @@ package org.amitayh.invoices.web
 
 import java.util.UUID
 
-import cats.effect.{Effect, Timer}
+import cats.effect.{Concurrent, Timer}
 import cats.implicits._
 import fs2.Stream
-import fs2.async.mutable.Topic
+import fs2.concurrent.Topic
 import io.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -16,21 +16,21 @@ import org.amitayh.invoices.web.CommandDto._
 import org.amitayh.invoices.web.PushEvents.CommandResultRecord
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
-import org.http4s.{EntityDecoder, HttpService, Response}
+import org.http4s.{EntityDecoder, HttpRoutes, Response}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-class InvoicesApi[F[_]: Timer: Effect: InvoiceList] extends Http4sDsl[F] {
+class InvoicesApi[F[_]: Concurrent: Timer] extends Http4sDsl[F] {
 
   private val maxQueued = 16
 
   implicit val commandEntityDecoder: EntityDecoder[F, Command] = jsonOf[F, Command]
 
-  def service(producer: Kafka.Producer[F, UUID, Command],
-              commandResultsTopic: Topic[F, CommandResultRecord]): HttpService[F] = HttpService[F] {
+  def service(invoiceList: InvoiceList[F],
+              producer: Kafka.Producer[F, UUID, Command],
+              commandResultsTopic: Topic[F, CommandResultRecord]): HttpRoutes[F] = HttpRoutes.of[F] {
     case GET -> Root / "invoices" =>
-      InvoiceList[F].get.flatMap(invoices => Ok(invoices.asJson))
+      invoiceList.get.flatMap(invoices => Ok(invoices.asJson))
 
     case request @ POST -> Root / "execute" / "async" / UuidVar(invoiceId) =>
       request
@@ -60,6 +60,5 @@ class InvoicesApi[F[_]: Timer: Effect: InvoiceList] extends Http4sDsl[F] {
 }
 
 object InvoicesApi {
-  def apply[F[_]: Timer: Effect: InvoiceList]: InvoicesApi[F] =
-    new InvoicesApi[F]
+  def apply[F[_]: Concurrent: Timer]: InvoicesApi[F] = new InvoicesApi[F]
 }

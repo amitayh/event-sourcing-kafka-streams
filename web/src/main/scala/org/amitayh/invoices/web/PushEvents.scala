@@ -3,23 +3,21 @@ package org.amitayh.invoices.web
 import java.util.UUID
 
 import cats.effect._
-import fs2.async.mutable.Topic
+import fs2.concurrent.Topic
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.amitayh.invoices.common.domain.{CommandResult, InvoiceSnapshot}
 import org.amitayh.invoices.dao.InvoiceRecord
 import org.amitayh.invoices.web.PushEvents._
 import org.http4s.dsl.Http4sDsl
-import org.http4s.{HttpService, ServerSentEvent}
+import org.http4s.{HttpRoutes, ServerSentEvent}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
-class PushEvents[F[_]: Effect] extends Http4sDsl[F] {
+class PushEvents[F[_]: Concurrent] extends Http4sDsl[F] {
 
   private val maxQueued = 16
 
   def service(commandResultsTopic: Topic[F, CommandResultRecord],
-              invoiceUpdatesTopic: Topic[F, InvoiceSnapshotRecord]): HttpService[F] = HttpService[F] {
+              invoiceUpdatesTopic: Topic[F, InvoiceSnapshotRecord]): HttpRoutes[F] = HttpRoutes.of[F] {
     case GET -> Root / UuidVar(originId) =>
       val commandResults = commandResultsTopic.subscribe(maxQueued).collect {
         case Some((_, result)) if result.originId == originId =>
@@ -37,7 +35,7 @@ object PushEvents {
   type CommandResultRecord = Option[(UUID, CommandResult)]
   type InvoiceSnapshotRecord = Option[(UUID, InvoiceSnapshot)]
 
-  def apply[F[_]: Effect]: PushEvents[F] = new PushEvents[F]
+  def apply[F[_]: Concurrent]: PushEvents[F] = new PushEvents[F]
 }
 
 sealed trait Event {

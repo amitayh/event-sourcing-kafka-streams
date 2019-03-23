@@ -1,16 +1,19 @@
 package org.amitayh.invoices.web
 
-import cats.effect.Sync
+import cats.effect.{ContextShift, Sync}
 import org.http4s.dsl.Http4sDsl
-import org.http4s.{HttpService, StaticFile}
+import org.http4s.{HttpRoutes, StaticFile}
 
-class Statics[F[_]: Sync] extends Http4sDsl[F] {
+import scala.concurrent.ExecutionContext.global
 
-  val service: HttpService[F] = HttpService[F] {
+class Statics[F[_]: Sync: ContextShift] extends Http4sDsl[F] {
+
+  val service: HttpRoutes[F] = HttpRoutes.of[F] {
     case request @ GET -> fileName =>
       StaticFile
         .fromResource(
           name = s"/statics$fileName",
+          blockingExecutionContext = global,
           req = Some(request),
           preferGzipped = true)
         .getOrElseF(NotFound())
@@ -19,5 +22,5 @@ class Statics[F[_]: Sync] extends Http4sDsl[F] {
 }
 
 object Statics {
-  def apply[F[_]: Sync]: Statics[F] = new Statics[F]
+  def apply[F[_]: Sync: ContextShift]: Statics[F] = new Statics[F]
 }
