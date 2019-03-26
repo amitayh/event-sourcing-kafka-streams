@@ -20,13 +20,15 @@ or run everything on your host.
 
 ### Run with Docker Compose
 
-1. Build images
+1. Update your host IP address in [.env](.env)
+
+2. Build images
 
    ```
    $ docker-compose build
    ```
 
-2. Start the containers
+3. Start the containers
 
    ```
    $ docker-compose up
